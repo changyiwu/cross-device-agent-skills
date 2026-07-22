@@ -95,6 +95,6 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
 ## 注意事項
 
 - 所有訊息使用**繁體中文**
-- 本 skill 的**原始檔**在 `我的雲端硬碟/agents/cross-device-agent-skills/startup/`（靠 Google 雲端硬碟跨電腦同步）。**安裝副本共四份**：Claude Code `~/.claude/skills/`、Codex `~/.codex/skills/`、OpenCode `~/.config/opencode/skills/`、Antigravity `~/.gemini/config/skills/`。一律改原始檔，改完跑 README 的同步指令一次覆蓋四份
+- 本 skill 的**原始檔**在 `我的雲端硬碟/agents/cross-device-agent-skills/startup/`（靠 Google 雲端硬碟跨電腦同步）。**安裝副本共四份**：Claude Code `~/.claude/skills/`、Codex `~/.agents/skills/`、OpenCode `~/.config/opencode/skills/`、Antigravity `~/.gemini/config/skills/`。一律改原始檔，改完跑 README 的同步指令一次覆蓋四份
 - 若與全域 CLAUDE.md 的文字版 SOP 重疊：**以本 skill 為準**（skill 是顯性觸發、文字 SOP 是 fallback）
 

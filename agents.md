@@ -52,3 +52,7 @@ cross-device-agent-skills/
 - 修改前先確認計畫，優先保留原有資料結構
 - **本資料夾是技能原始檔**。改動一律改這裡，改完跑 README 的同步指令，一次覆蓋四份安裝副本（Claude Code／Codex／OpenCode／Antigravity）
 - 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了
+
+## 最近進度
+
+- 2026-07-22：將 Codex 全域 Skill 安裝位置更新為 `~/.agents/skills/`，並同步 README、project-init、startup、shutdown 四處說明。

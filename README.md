@@ -53,7 +53,7 @@ git clone https://github.com/mathruffian-dot/cross-device-agent-skills.git
 | 工具 | 全域技能目錄 |
 |------|-------------|
 | Claude Code | `~/.claude/skills/` |
-| Codex | `~/.codex/skills/` |
+| Codex | `~/.agents/skills/` |
 | OpenCode | `~/.config/opencode/skills/` |
 | Antigravity | `~/.gemini/config/skills/` |
 
@@ -63,7 +63,7 @@ git clone https://github.com/mathruffian-dot/cross-device-agent-skills.git
 $src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"
 $dests = @(
   "$HOME\.claude\skills",
-  "$HOME\.codex\skills",
+  "$HOME\.agents\skills",
   "$HOME\.config\opencode\skills",
   "$HOME\.gemini\config\skills"
 )
