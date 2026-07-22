@@ -1,6 +1,6 @@
 ---
 name: project-init
-description: 專案初始化技能（三層級自動偵測）。當使用者說「初始化專案」、「專案初始化」、「幫這個專案做初始化」、「開新專案」、「建立專案藍圖」、「幫我 init 專案」等要為當前資料夾建立專案基礎建設的請求時，請一定要使用此技能。本技能會依這台電腦的工具鏈自動建到最高可用層級：L1 本地（agents.md + handoff.md）→ L2 GitHub（git init + 私有 repo）→ L3 Obsidian（專案詳細筆記）。
+description: 專案初始化技能（三層級自動偵測）。當使用者說「初始化專案」、「專案初始化」、「幫這個專案做初始化」、「開新專案」、「建立專案藍圖」、「幫我 init 專案」等要為當前資料夾建立專案基礎建設的請求時，請一定要使用此技能。本技能會依這台電腦的工具鏈自動建到最高可用層級：L1 本地（agents.md + handoff.md）→ L2 GitHub（git init + repo，建立前詢問公開或私有）→ L3 Obsidian（專案詳細筆記）。
 ---
 
 # 專案初始化技能（三層級自動偵測）
@@ -14,7 +14,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 | 層級 | 平台 | 建立的東西 | 讀取時機 |
 |------|------|-----------|---------|
 | L1 本地 | 專案資料夾（建議放 GDrive） | `agents.md`（專案藍圖）＋`handoff.md`（交接檔） | **每個 session 都讀** |
-| L2 GitHub | 私有 repo | git 版本控制＋雲端備份 | 指定才讀 |
+| L2 GitHub | repo（公開／私有由使用者選） | git 版本控制＋雲端備份 | 指定才讀 |
 | L3 Obsidian | 第二大腦 vault | `專案工作流程.md`（詳細筆記） | 有需要才讀 |
 
 > 為什麼藍圖叫 `agents.md` 而不是 `CLAUDE.md`？因為 AGENTS.md 是跨 Agent 開放標準——Claude Code、Codex、Gemini CLI、OpenCode 都讀得懂。專案層的檔案刻意用開放格式，任何 Agent 接手都能無縫工作。
@@ -58,11 +58,16 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
    credentials.*
    ```
 8. **初始 commit**：`git add .` → `git commit -m "初始化專案：<專案名稱>"`
-9. **建立私有 repo**：問使用者偏好的英文 repo 名，然後
+9. **建立 repo**：問使用者兩件事——
+   - 偏好的英文 repo 名
+   - **可見度：公開（public）還是私有（private）？** 一定要問，不要自己決定；使用者沒明確回答就用 **private**
+
+   然後依選擇執行（`<可見度>` 填 `--private` 或 `--public`）：
    ```bash
-   gh repo create changyiwu/<repo-name> --private --source=. --push
+   gh repo create changyiwu/<repo-name> <可見度> --source=. --push
    ```
-10. **回填 `agents.md`** 同步層級表的 GitHub 欄（repo 網址）
+   選公開前先提醒一句：公開 repo 的內容與 commit 歷史所有人都看得到，確認沒有金鑰、個資或未公開素材再建。
+10. **回填 `agents.md`** 同步層級表的 GitHub 欄（repo 網址，並註明公開／私有）
 
 ### L3：Obsidian（MCP 可用才做，否則跳過並註明）
 
@@ -77,7 +82,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 ```
 🏗️ 本專案初始化至第 N 層級
 ✅ L1 本地：agents.md ＋ handoff.md
-✅ L2 GitHub：changyiwu/<repo>（私有）
+✅ L2 GitHub：changyiwu/<repo>（私有／公開，照使用者的選擇寫）
 ⚠️ L3 Obsidian：未建（這台電腦沒有 Obsidian MCP，之後可在有 Obsidian 的電腦說「補建第三層級」）
 ```
 
@@ -86,7 +91,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 - ❌ 未經確認就覆蓋既有的 `agents.md`／`handoff.md`
 - ❌ 電腦沒 gh／Obsidian 時報錯中斷（正確行為：跳過該層級、在回報中註明原因）
 - ❌ 把 `.env`、API key 之類敏感檔 commit 進 git
-- ❌ 建 public repo（預設一律 private，使用者明說才轉公開）
+- ❌ 沒問使用者就決定 repo 可見度（一定要問公開或私有；沒回答才用 private 當預設）
 
 ## 注意事項
 

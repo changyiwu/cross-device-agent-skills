@@ -7,7 +7,7 @@
 
 | 技能 | 口令 | 做什麼 |
 |------|------|--------|
-| `project-init` | 「初始化專案」 | 為專案建立藍圖（agents.md）＋交接檔（handoff.md），有 GitHub 就順便建私有 repo，有 Obsidian 就建詳細筆記 |
+| `project-init` | 「初始化專案」 | 為專案建立藍圖（agents.md）＋交接檔（handoff.md），有 GitHub 就順便建 repo（會問你要公開還是私有），有 Obsidian 就建詳細筆記 |
 | `startup` | 「開工」 | 讀藍圖＋交接檔，回報上次做到哪（含「上次在哪台電腦收工」）、git 狀態、建議下一步 |
 | `shutdown` | 「收工」 | 更新藍圖進度、改寫交接檔、git commit + push、詳細紀錄寫進 Obsidian |
 

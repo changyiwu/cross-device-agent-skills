@@ -56,3 +56,4 @@ cross-device-agent-skills/
 ## 最近進度
 
 - 2026-07-22：將 Codex 全域 Skill 安裝位置更新為 `~/.agents/skills/`，並同步 README、project-init、startup、shutdown 四處說明。
+- 2026-07-22（晚）：`project-init` 建 GitHub repo 時改為**詢問使用者公開或私有**（原本寫死 private），並同步四份安裝副本。
