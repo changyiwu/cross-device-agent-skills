@@ -13,10 +13,9 @@
 1.
 
 ## ⚠️ 注意事項
-<!-- 坑、暫時 workaround、不要動的東西 -->
+<!-- 只放下一個 session 仍需處理的未解風險、暫時 workaround 或當前禁止變動項目；長期規則放 agents.md，已解決的踩坑與原因放 Obsidian -->
 
 ## 🕐 最後更新
 - 時間：<YYYY-MM-DD HH:mm>
 - 更新者：<Agent 名> @ <電腦名>
 - Git push：<✅ 已推｜❌ 未推（原因）｜—（本專案未啟用 git）>
-
