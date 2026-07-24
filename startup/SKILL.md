@@ -33,10 +33,6 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
    - 若**更新者的電腦名 ≠ 這台電腦**（PowerShell 比對 `$env:COMPUTERNAME`）→ 特別標示「⚠️ 上次在另一台電腦（名稱）收工」，並確認 GDrive 同步已完成（看 handoff.md 檔案時間戳是否與交接檔內時間吻合；若本地檔案明顯過舊，提醒等 GDrive 同步完再開工）
    - 若 handoff.md 的更新時間比 agents.md 舊很多 → 提醒「上次可能沒有正式收工」
 
-**Fallback（舊專案相容）**：若專案沒有 `agents.md`／`handoff.md`：
-- 有 Obsidian MCP → 改讀 `<vault>/<資料夾名>/專案工作流程.md` 或 `工作筆記.md` 的「上次做到哪」段
-- 讀完提議：「這個專案還沒有 agents.md＋handoff.md，要不要用『初始化專案』補建？」（提議即可，不主動建）
-
 ### L2：git 檢查（專案有 `.git` 才做）
 
 4. **本地狀態**：`git status --short`
