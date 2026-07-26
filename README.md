@@ -57,7 +57,13 @@ git clone https://github.com/mathruffian-dot/cross-device-agent-skills.git
 | OpenCode | `~/.config/opencode/skills/` |
 | Antigravity | `~/.gemini/config/skills/` |
 
-改動一律動原始檔，改完跑這段一次覆蓋四份：
+改動一律動原始檔，改完跑這段一次覆蓋四份。**跑之前先確認 worktree 乾淨**：
+
+```bash
+git diff HEAD --stat
+```
+
+沒列出非預期的改動再往下跑。GDrive 偶爾會餵出過期的檔案內容（磁碟讀到舊 bytes，但 git 的 HEAD 已是新版），這時直接同步等於**把四份副本一起降版**——只看檔案內容或時間戳看不出來，一定要問 git。
 
 ```powershell
 $src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"

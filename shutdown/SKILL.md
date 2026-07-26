@@ -72,6 +72,8 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 
 沒做到的項目用 ⚠️ 或 ❌ 並說明原因。若本次改過全域技能（`我的雲端硬碟/agents/cross-device-agent-skills/`），提醒跑 README 的同步指令覆蓋四個工具的安裝副本（Claude Code／Codex／OpenCode／Antigravity），否則這台電腦跑的還是舊版。
 
+> ⚠️ **同步前必做**：先在技能 repo 跑 `git diff HEAD --stat`，確認 worktree 乾淨（== HEAD）再覆蓋副本。GDrive 有時會餵出過期的檔案內容——磁碟讀到舊 bytes、git 的 HEAD 卻已是新版。這時直接同步等於**把四家一起降版**。只看檔案內容或時間戳判斷不出來，一定要問 git。
+
 ## 不該做的事
 
 - ❌ 對「沒實質進度」的對話也跑同步
@@ -93,5 +95,6 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 
 - 所有訊息使用**繁體中文**
 - GDrive 內的 repo 首次操作若遇 git 寫入錯誤：`git config windows.appendAtomically false`
+- **GDrive 上的 repo，一律以 git 為準、不以檔案內容為準**：GDrive 可能回傳過期內容，導致「讀檔看起來是舊版、`git status` 卻乾淨」。判斷版本用 `git diff HEAD`／`git log`，不要靠讀檔或看時間戳。`git status` 出現 `MM` 但 `git diff HEAD` 是空的，通常只是 LF/CRLF 差異，用 `git add --renormalize .` 消掉即可
 - 本 skill 的**原始檔**在 `我的雲端硬碟/agents/cross-device-agent-skills/shutdown/`（靠 Google 雲端硬碟跨電腦同步）。**安裝副本共四份**：Claude Code `~/.claude/skills/`、Codex `~/.agents/skills/`、OpenCode `~/.config/opencode/skills/`、Antigravity `~/.gemini/config/skills/`。一律改原始檔，改完跑 README 的同步指令一次覆蓋四份
 
