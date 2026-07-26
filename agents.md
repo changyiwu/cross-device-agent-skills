@@ -57,3 +57,4 @@ cross-device-agent-skills/
 
 - 2026-07-22：將 Codex 全域 Skill 安裝位置更新為 `~/.agents/skills/`，並同步 README、project-init、startup、shutdown 四處說明。
 - 2026-07-22（晚）：`project-init` 建 GitHub repo 時改為**詢問使用者公開或私有**（原本寫死 private），並同步四份安裝副本。
+- 2026-07-26：新增「同步安裝副本前先跑 `git diff HEAD --stat`」的防呆（README ＋ `shutdown/SKILL.md` 兩處）。起因是本次 GDrive 餵出過期檔案內容，據此同步一度把四份副本降版。已確認 Codex 讀取路徑 `~/.agents/skills/` 正確。
