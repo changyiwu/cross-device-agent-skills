@@ -5,6 +5,29 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 
 # 收工同步助手（三層級）
 
+## 步驟 0：技能版本前置檢查（在做下面任何事之前）
+
+安裝副本是舊版時，這個技能會照舊版邏輯跑完而**沒人會發現**。所以先跑一次比對：
+
+```powershell
+& "$HOME\我的雲端硬碟\agents\cross-device-agent-skills\check-sync.ps1" shutdown
+```
+
+按輸出處理：
+
+| 輸出 | 怎麼做 |
+|------|--------|
+| 全 `OK` | 直接往下做，**不用回報這一步** |
+| `BEHIND` | 源檔自己就是舊的（GDrive 整包還沒同步完）。腳本已中止，此時任何比對結果都不可信。**先告知使用者、建議 `git pull` 後重跑**，別急著同步 |
+| `DIRTY` | 掃一眼列出的檔案：都是你認得的改動就繼續；有非預期檔案先停下來查 git |
+| `STALE` 且是**你現在跑的工具** | 先告知「本次執行用的是舊版技能」，建議先同步再繼續。使用者要照舊版繼續也照辦，但不要默默跳過 |
+| `STALE` 但是**別的工具** | 這次執行不受影響，在收工回報的 `⚠️ 手動處理` 附一句「<工具> 的副本待同步」 |
+| 找不到腳本／沒有 PowerShell | 略過，照常往下做 |
+
+> 同步一律跑 `check-sync.ps1 -Sync`（內部用 `Copy-Item` 從磁碟複製，並自動驗證）。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
+
+---
+
 對話結束前，把這次的工作保存到專案建到的每一層：
 
 | 層級 | 收工動作 | 給誰看 |
@@ -74,22 +97,28 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 
 ### 收工的專案是技能 repo 本身時（`我的雲端硬碟/agents/cross-device-agent-skills/`）
 
-安裝副本共四份（Claude Code／Codex／OpenCode／Antigravity），源檔改了但副本沒跟上，這台電腦跑的就還是舊版。**不要靠「這次有沒有改」的印象判斷**——過去漏跑的漂移只有實際比對才看得出來，所以三步都要做：
+安裝副本共四份（Claude Code／Codex／OpenCode／Antigravity），源檔改了但副本沒跟上，這台電腦跑的就還是舊版。
 
-1. `git diff HEAD --stat` 確認 worktree 乾淨（== HEAD）**再**覆蓋副本。GDrive 有時會餵出過期的檔案內容——磁碟讀到舊 bytes、git 的 HEAD 卻已是新版，這時直接同步等於**把四家一起降版**。只看檔案內容或時間戳判斷不出來，一定要問 git。
-2. 跑 README 的同步指令覆蓋四份。
-3. 比對驗證，12 組全 `OK` 才算收工完成；有 `DIFF` 就回到步驟 2 補跑：
+> 這一節跟開頭的「步驟 0」**不是同一件事，兩者都要做**——差別在職責，不在偵測能力：
+>
+> - **步驟 0**（技能開始時）：只**警告**「本次執行用的邏輯可能是舊的」。按它自己的規則，使用者可以選「照舊版繼續」，它不負責同步。
+> - **這一節**（所有編輯都結束後）：唯一會**真的執行同步並驗證**的環節，關心的是「下一個 session／下一台電腦／下一個 Agent 會不會拿到舊版」。
+>
+> 本次 session 改過源檔時，步驟 0 也會印 `STALE`（落差那時已存在）——所以兩者不是靠「誰偵測得到」分工，而是靠**誰負責動手**。
+>
+> 步驟 0 另有兩個盲區，別把它當保險：一是它一個技能只跑一次，跑完之後才發生的編輯（含收工自己改的檔）看不到；二是它做的是**相對比對**（源檔 vs 副本），源檔自己落後 origin 時兩邊一起舊，它會印 `OK`——那種「一起降版」只有 `git fetch` 比對 origin 才抓得到。
+
+**不要靠「這次有沒有改」的印象判斷**——過去漏跑的漂移只有實際比對才看得出來。commit 完之後跑：
 
 ```powershell
-$src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"
-foreach ($d in "$HOME\.claude\skills","$HOME\.agents\skills","$HOME\.config\opencode\skills","$HOME\.gemini\config\skills") {
-  foreach ($s in 'project-init','startup','shutdown') {
-    $a = (Get-ChildItem -Recurse "$src\$s" -File | Get-FileHash | Sort-Object Hash).Hash
-    $b = (Get-ChildItem -Recurse "$d\$s"   -File | Get-FileHash | Sort-Object Hash).Hash
-    if (Compare-Object $a $b) { "DIFF  $d\$s" } else { "OK    $d\$s" }
-  }
-}
+& "$HOME\我的雲端硬碟\agents\cross-device-agent-skills\check-sync.ps1" -Sync
 ```
+
+`-Sync` 已內建三道關卡（`BEHIND` 硬中止 → `DIRTY` 提醒 → 覆蓋四份 → 驗證），所以只要看最後一行：**12 組全 `OK` 才算收工完成**。
+
+有 `BEHIND` 就**不要同步**——那表示源檔自己落後 origin，硬同步等於把四家一起降版。先 `git pull` 再重跑。
+
+⚠️ 兩件事不能自己來：**不要用 Write/Edit 重建副本**（會把 context 裡的舊內容寫進去），**不要跳過驗證**（`-Sync` 已含驗證，別只跑 `Copy-Item`）。
 
 ## 不該做的事
 
