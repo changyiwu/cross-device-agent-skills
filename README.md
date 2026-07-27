@@ -82,6 +82,19 @@ foreach ($d in $dests) {
 
 換一台電腦時，等 GDrive 同步完再跑同一段指令即可（該電腦沒裝的工具，把對應那行從 `$dests` 拿掉）。
 
+跑完**比對驗證一次**，12 組全 `OK` 才算同步完成。別靠「這次有沒有改」的印象判斷——過去漏跑留下的漂移只有實際比對才看得出來：
+
+```powershell
+$src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"
+foreach ($d in "$HOME\.claude\skills","$HOME\.agents\skills","$HOME\.config\opencode\skills","$HOME\.gemini\config\skills") {
+  foreach ($s in 'project-init','startup','shutdown') {
+    $a = (Get-ChildItem -Recurse "$src\$s" -File | Get-FileHash | Sort-Object Hash).Hash
+    $b = (Get-ChildItem -Recurse "$d\$s"   -File | Get-FileHash | Sort-Object Hash).Hash
+    if (Compare-Object $a $b) { "DIFF  $d\$s" } else { "OK    $d\$s" }
+  }
+}
+```
+
 > ⚠️ 編輯 SKILL.md 時**不要存成含 BOM 的 UTF-8**。開頭的 `EF BB BF` 會讓 frontmatter 解析失敗，技能雖然載入得了但描述變成 `---`、觸發不了。
 
 ## 典型的一天

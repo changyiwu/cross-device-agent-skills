@@ -70,9 +70,26 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 ⚠️ 手動處理：<例：本次新增了 ~/.xxx_api_key，另一台電腦要手動建>
 ```
 
-沒做到的項目用 ⚠️ 或 ❌ 並說明原因。若本次改過全域技能（`我的雲端硬碟/agents/cross-device-agent-skills/`），提醒跑 README 的同步指令覆蓋四個工具的安裝副本（Claude Code／Codex／OpenCode／Antigravity），否則這台電腦跑的還是舊版。
+沒做到的項目用 ⚠️ 或 ❌ 並說明原因。
 
-> ⚠️ **同步前必做**：先在技能 repo 跑 `git diff HEAD --stat`，確認 worktree 乾淨（== HEAD）再覆蓋副本。GDrive 有時會餵出過期的檔案內容——磁碟讀到舊 bytes、git 的 HEAD 卻已是新版。這時直接同步等於**把四家一起降版**。只看檔案內容或時間戳判斷不出來，一定要問 git。
+### 收工的專案是技能 repo 本身時（`我的雲端硬碟/agents/cross-device-agent-skills/`）
+
+安裝副本共四份（Claude Code／Codex／OpenCode／Antigravity），源檔改了但副本沒跟上，這台電腦跑的就還是舊版。**不要靠「這次有沒有改」的印象判斷**——過去漏跑的漂移只有實際比對才看得出來，所以三步都要做：
+
+1. `git diff HEAD --stat` 確認 worktree 乾淨（== HEAD）**再**覆蓋副本。GDrive 有時會餵出過期的檔案內容——磁碟讀到舊 bytes、git 的 HEAD 卻已是新版，這時直接同步等於**把四家一起降版**。只看檔案內容或時間戳判斷不出來，一定要問 git。
+2. 跑 README 的同步指令覆蓋四份。
+3. 比對驗證，12 組全 `OK` 才算收工完成；有 `DIFF` 就回到步驟 2 補跑：
+
+```powershell
+$src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"
+foreach ($d in "$HOME\.claude\skills","$HOME\.agents\skills","$HOME\.config\opencode\skills","$HOME\.gemini\config\skills") {
+  foreach ($s in 'project-init','startup','shutdown') {
+    $a = (Get-ChildItem -Recurse "$src\$s" -File | Get-FileHash | Sort-Object Hash).Hash
+    $b = (Get-ChildItem -Recurse "$d\$s"   -File | Get-FileHash | Sort-Object Hash).Hash
+    if (Compare-Object $a $b) { "DIFF  $d\$s" } else { "OK    $d\$s" }
+  }
+}
+```
 
 ## 不該做的事
 
