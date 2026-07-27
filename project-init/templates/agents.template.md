@@ -1,6 +1,7 @@
 # <專案名稱>（專案藍圖）
 
 > 本檔為跨 Agent 通用的專案藍圖（AGENTS.md 開放標準）。任何 Agent 的每個 session 都應先讀本檔＋`handoff.md`。
+> Claude Code 不讀 `agents.md`，改由 `CLAUDE.md` 的 `@agents.md` import 本檔；Claude 專屬規範寫在 `CLAUDE.md`。
 
 ## 專案簡介
 <!-- 一段話：這個專案是什麼、目標是什麼 -->
@@ -20,7 +21,7 @@
 
 | 層級 | 平台 | 位置 | 讀取時機 |
 |------|------|------|---------|
-| L1 | 本地（GDrive） | `agents.md`＋`handoff.md` | 每個 session |
+| L1 | 本地（GDrive） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接） | 每個 session |
 | L2 | GitHub | <未啟用｜changyiwu/repo-name> | 指定時 |
 | L3 | Obsidian | <未啟用｜資料夾名/專案工作流程.md> | 有需要時 |
 

@@ -7,7 +7,7 @@
 
 | 技能 | 口令 | 做什麼 |
 |------|------|--------|
-| `project-init` | 「初始化專案」 | 為專案建立藍圖（agents.md）＋交接檔（handoff.md），有 GitHub 就順便建 repo（會問你要公開還是私有），有 Obsidian 就建詳細筆記 |
+| `project-init` | 「初始化專案」 | 為專案建立藍圖（agents.md）＋交接檔（handoff.md）＋Claude Code 橋接檔（CLAUDE.md），有 GitHub 就順便建 repo（會問你要公開還是私有），有 Obsidian 就建詳細筆記 |
 | `startup` | 「開工」 | 讀藍圖＋交接檔，回報上次做到哪（含「上次在哪台電腦收工」）、git 狀態、建議下一步 |
 | `shutdown` | 「收工」 | 更新藍圖進度、改寫交接檔、git commit + push、詳細紀錄寫進 Obsidian |
 
@@ -17,7 +17,7 @@
 
 | 層級 | 需要安裝 | 你會得到 |
 |------|---------|---------|
-| **L1 本地** | 什麼都不用（建議專案放 Google 雲端硬碟資料夾） | `agents.md`＋`handoff.md`，跨電腦靠雲端硬碟同步 |
+| **L1 本地** | 什麼都不用（建議專案放 Google 雲端硬碟資料夾） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接），跨電腦靠雲端硬碟同步 |
 | **L2 +GitHub** | [GitHub CLI](https://cli.github.com/)（`gh auth login` 登入） | 版本控制＋雲端備份，貼網址就能分享專案 |
 | **L3 +Obsidian** | Obsidian＋Obsidian MCP | 專案詳細筆記（第二大腦） |
 
@@ -132,10 +132,21 @@ foreach ($d in $dests) {
          ✅ L2：已 commit + push「新增報名表單 Firebase 寫入」
 ```
 
-## 兩個核心檔案
+## 三個核心檔案
 
-- **`agents.md`**（專案藍圖）：用 AGENTS.md 開放標準命名——Claude Code、Codex、Gemini CLI、OpenCode 都讀得懂，換 Agent 不用改檔案
+- **`agents.md`**（專案藍圖）：用 AGENTS.md 開放標準命名——Codex、Gemini CLI、OpenCode 都會自動讀，換 Agent 不用改檔案
 - **`handoff.md`**（交接檔）：記錄「目前做到哪／下一步／注意事項／**最後更新者＋電腦名＋有沒有 push**」。不管是**換電腦**還是**換 Agent** 接手，都先讀這個檔
+- **`CLAUDE.md`**（橋接檔）：**Claude Code 只讀 `CLAUDE.md`，不讀 `agents.md`**（[官方文件](https://code.claude.com/docs/en/memory)明載），所以要用一行 `@agents.md` 把藍圖 import 進來。藍圖仍只有一份，四家 Agent 都吃得到
+
+```markdown
+@agents.md
+
+## Claude Code 專屬
+（只放 Claude 專屬規範；專案內容一律寫在 agents.md）
+```
+
+> 官方另一個做法是 `ln -s AGENTS.md CLAUDE.md`，但 Windows 建 symlink 要系統管理員或開發者模式，所以一律用 `@` import。
+> 驗證方式：在 Claude Code 裡跑 `/context`，看 **Memory files** 有沒有列到 `CLAUDE.md`。
 
 範本在 `project-init/templates/`，初始化技能會自動套用。
 

@@ -1,6 +1,7 @@
 # 跨電腦專案管理三技能（cross-device-agent-skills）（專案藍圖）
 
 > 本檔為跨 Agent 通用的專案藍圖（AGENTS.md 開放標準）。任何 Agent 的每個 session 都應先讀本檔＋`handoff.md`。
+> Claude Code 不讀 `agents.md`，改由 `CLAUDE.md` 的 `@agents.md` import 本檔；Claude 專屬規範寫在 `CLAUDE.md`。
 
 ## 專案簡介
 
@@ -27,11 +28,13 @@ cross-device-agent-skills/
 ├─ README.md                 # 技能包說明、安裝方式、四工具同步指令
 ├─ check-sync.ps1            # 版本檢查／同步（BEHIND→DIRTY→覆蓋→驗證），不隨技能複製
 ├─ agents.md                 # 本檔：專案藍圖
+├─ CLAUDE.md                 # 橋接檔（@agents.md，讓 Claude Code 也載得到藍圖）
 ├─ handoff.md                # 交接檔（每次收工必更新）
 ├─ project-init/
 │  ├─ SKILL.md               # 「初始化專案」技能
 │  └─ templates/
 │     ├─ agents.template.md  # 專案藍圖範本
+│     ├─ claude.template.md  # CLAUDE.md 橋接檔範本
 │     └─ handoff.template.md # 交接檔範本
 ├─ startup/SKILL.md          # 「開工」技能
 ├─ shutdown/SKILL.md         # 「收工」技能
@@ -42,7 +45,7 @@ cross-device-agent-skills/
 
 | 層級 | 平台 | 位置 | 讀取時機 |
 |------|------|------|---------|
-| L1 | 本地（GDrive） | `agents.md`＋`handoff.md` | 每個 session |
+| L1 | 本地（GDrive） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接） | 每個 session |
 | L2 | GitHub | https://github.com/changyiwu/cross-device-agent-skills （公開） | 指定時 |
 | L3 | Obsidian | `cross-device-agent-skills/專案工作流程.md` | 有需要時 |
 

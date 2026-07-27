@@ -39,6 +39,7 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
 ## 層級偵測（開工看「這個專案」建到哪層）
 
 - **L1**：專案有 `agents.md`／`handoff.md` → 讀
+  - 你是 **Claude Code** 且專案有 `agents.md`、卻沒有 `CLAUDE.md`（或 `CLAUDE.md` 裡沒有 `@agents.md`）→ 藍圖這個 session **沒被自動載入**。用 Read 工具把 `agents.md` 讀進來照常開工，並在回報最後提醒：「這個專案缺 `CLAUDE.md` 橋接，要不要補一行 `@agents.md`？」
 - **L2**：專案有 `.git` → 做 git 檢查
 - **L3**：`agents.md` 同步層級表登記了 Obsidian 路徑，且 Obsidian MCP 可用 → 列出筆記路徑（不主動讀）
 
