@@ -21,7 +21,7 @@ if (Get-Command chezmoi -ErrorAction SilentlyContinue) { chezmoi status } else {
 | 印出任何一行 | **停下來**，把原始輸出貼給使用者再問怎麼處理。左欄＝source 有變動待 `chezmoi apply`；右欄＝本機檔案被改過，要 `chezmoi add` 收編或用 `apply` 覆蓋。**不要自己決定跑哪一個** |
 | `chezmoi 未安裝，略過此步` | 這台電腦沒裝，略過，照常往下做 |
 
-> 技能原始檔改完要同步四份安裝副本時，用下面「收工的專案是技能 repo 本身時」那段的 `Copy-Item`（從磁碟複製）。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
+> 技能原始檔改完要同步四份安裝副本時，走技能 repo `README.md` 的「本副本的設定（changyiwu）」那段 `Copy-Item`（從磁碟複製），跑之前先照那段的指示確認 worktree 乾淨。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
 
 ---
 
@@ -91,45 +91,6 @@ if (Get-Command chezmoi -ErrorAction SilentlyContinue) { chezmoi status } else {
 ```
 
 沒做到的項目用 ⚠️ 或 ❌ 並說明原因。
-
-### 收工的專案是技能 repo 本身時（`我的雲端硬碟/agents/cross-device-agent-skills/`）
-
-安裝副本共四份（Claude Code／Codex／OpenCode／Antigravity），源檔改了但副本沒跟上，這台電腦跑的就還是舊版。
-
-> 這一節跟開頭的「步驟 0」**不是同一件事，兩者都要做**——差別在職責：
->
-> - **步驟 0**（技能開始時）：只**回報**「本機 dotfile 現在對不對得上」，不負責同步。而且它一個技能只跑一次，跑完之後才發生的編輯（含收工自己改的檔）它看不到。
-> - **這一節**（所有編輯都結束後）：唯一會**真的執行同步**的環節，關心的是「下一個 session／下一台電腦／下一個 Agent 會不會拿到舊版」。
-
-**不要靠「這次有沒有改」的印象判斷**——過去漏跑的漂移，只有實際覆蓋一次才補得回來。
-
-commit 完之後，先確認源檔本身可信（GDrive 可能餵出過期內容，拿舊源檔同步等於把四份副本一起降版）：
-
-```powershell
-git diff HEAD --stat
-git fetch origin; git rev-list HEAD..origin/master --count
-```
-
-`git diff HEAD --stat` 沒列出非預期改動、且落後數是 `0`，才往下覆蓋四份副本：
-
-```powershell
-$src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"
-$dests = @(
-  "$HOME\.claude\skills",
-  "$HOME\.agents\skills",
-  "$HOME\.config\opencode\skills",
-  "$HOME\.gemini\config\skills"
-)
-foreach ($d in $dests) {
-  foreach ($s in 'project-init','startup','shutdown') {
-    Copy-Item "$src\$s" "$d\" -Recurse -Force
-  }
-}
-```
-
-這台電腦沒裝的工具，把對應那行從 `$dests` 拿掉。落後數不是 `0` 就**先 `git pull` 再同步**。
-
-⚠️ **不要用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣，只有比對才抓得到。
 
 ## 不該做的事
 
