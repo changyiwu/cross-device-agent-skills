@@ -82,37 +82,25 @@ foreach ($d in $dests) {
 
 換一台電腦時，等 GDrive 同步完再跑同一段指令即可（該電腦沒裝的工具，把對應那行從 `$dests` 拿掉）。
 
-### `check-sync.ps1`：技能版本檢查與同步
+> ⚠️ **絕不可請 Agent 用 Write/Edit 重建副本**——那會把它 context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣，只有比對才抓得到。同步一律走上面那段 `Copy-Item`（從磁碟複製）。在「之前已開過的舊對話」裡要求同步時風險最高。
 
-上面那段手動 `Copy-Item` 是「底層做了什麼」的說明。**平常直接用這支腳本就好**：
+### 步驟 0：`chezmoi status` 前置檢查
+
+三個技能的 SKILL.md 都在「步驟 0」跑一次這行，確認本機 dotfile 沒有未處理的漂移：
 
 ```powershell
-& ".\check-sync.ps1"             # 只檢查，不動任何檔案
-& ".\check-sync.ps1" startup     # 只檢查一個技能
-& ".\check-sync.ps1" -Sync       # 覆蓋四份副本，並自動驗證
-& ".\check-sync.ps1" -NoFetch    # 跳過 git fetch（離線時用）
+if (Get-Command chezmoi -ErrorAction SilentlyContinue) { chezmoi status } else { "chezmoi 未安裝，略過此步" }
 ```
 
-執行順序是三道關卡：
+- **沒有任何輸出** → 一致，技能照常往下做，不佔版面回報
+- **印出任何一行** → 停下來，把原始輸出貼給你再問怎麼處理（`chezmoi apply` 覆蓋本機／`chezmoi add` 收編本機改動），Agent 不自己決定
+- **沒裝 chezmoi** → 整步略過，不影響技能執行
 
-| 關卡 | 輸出 | 意義 |
-|------|------|------|
-| 1. git 權威 | `BEHIND` | 本機 repo 落後 origin → **硬中止**，連 `-Sync` 也擋 |
-| | `DIRTY` | 技能資料夾有未 commit 改動 → 提醒你確認，繼續執行 |
-| 2. 覆蓋（僅 `-Sync`） | `SYNCED` | 用 `Copy-Item` 覆蓋四份 |
-| 3. 內容比對 | `OK`／`STALE` | 逐組比對，`STALE` 會列出差異檔名 |
+這是為了補一個盲點：安裝副本落後或被就地改過時，技能會照舊版邏輯默默跑完，沒人會發現。有用 chezmoi 管 dotfile 的電腦就順便有了這道檢查，沒用的電腦維持原本行為。
 
-**為什麼要先問 git 再比內容**：純比對「原始檔 vs 副本」是相對檢查，抓不到「兩邊一起舊」。GDrive 整包還沒同步完時，原始檔和副本都是舊版，比對會印 `OK`——那種「一起降版」只有拿 origin 當權威才看得出來。所以 `BEHIND` 是硬關卡：此時同步等於把四家一起降版。
-
-三個技能的 SKILL.md 都在「步驟 0」呼叫它——所以在**任何專案**說「開工／收工／初始化專案」，Agent 都會先確認自己不是舊版。這解掉了原本的盲點：安裝副本落後時，技能會照舊版邏輯默默跑完，沒人會發現。
-
-腳本刻意**只放在原始檔 repo 根目錄、不隨技能複製到安裝副本**——「檢查者」本身若有舊版問題，檢查結果就不可信。
-
-> ⚠️ 同步一律用 `-Sync`（內部是 `Copy-Item`，從磁碟複製）。**絕不可請 Agent 用 Write/Edit 重建副本**——那會把它 context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣，只有比對才抓得到。在「之前已開過的舊對話」裡要求同步時風險最高。
+> ⚠️ `chezmoi status` 比的是「本機檔案 vs chezmoi source」，跟上面那段 `Copy-Item`（GDrive 原始檔 → 四份安裝副本）是兩條不同路徑。要讓步驟 0 真的看得到技能副本的漂移，得先把那四個技能目錄納入 chezmoi 管理。
 
 > ⚠️ 編輯 SKILL.md 時**不要存成含 BOM 的 UTF-8**。開頭的 `EF BB BF` 會讓 frontmatter 解析失敗，技能雖然載入得了但描述變成 `---`、觸發不了。
->
-> ⚠️ `.ps1` 剛好**相反：必須存成含 BOM 的 UTF-8**。Windows PowerShell 5.1 讀無 BOM 的 `.ps1` 會當成 ANSI，中文字串直接爛掉、噴 `The string is missing the terminator`。用編輯器另存時記得選「UTF-8 with BOM」。
 
 ## 典型的一天
 

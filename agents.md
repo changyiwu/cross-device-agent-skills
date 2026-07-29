@@ -19,14 +19,13 @@
 - [x] 階段二：本專案自身完成初始化（agents.md ＋ handoff.md ＋ git ＋ Obsidian）
 - [ ] 階段三：跨電腦實測（在另一台電腦「開工／收工」驗證流程）
 - [ ] 階段四：依實測回饋調整技能內容
-- [ ] 階段五：版本檢查擴及**所有**全域技能（非只這三個）——需先查證 Codex／OpenCode／Antigravity 有無等效 hook，且對「刻意客製」的技能改用 git SHA 戳記而非內容比對
+- [ ] 階段五：把四個工具的全域技能目錄納入 chezmoi 管理，讓步驟 0 的 `chezmoi status` 真的涵蓋**所有**全域技能（非只這三個）
 
 ## 資料夾結構
 
 ```
 cross-device-agent-skills/
 ├─ README.md                 # 技能包說明、安裝方式、四工具同步指令
-├─ check-sync.ps1            # 版本檢查／同步（BEHIND→DIRTY→覆蓋→驗證），不隨技能複製
 ├─ agents.md                 # 本檔：專案藍圖
 ├─ CLAUDE.md                 # 橋接檔（@agents.md，讓 Claude Code 也載得到藍圖）
 ├─ handoff.md                # 交接檔（每次收工必更新）
@@ -55,8 +54,9 @@ cross-device-agent-skills/
 - 修改共用檔案前先讀最新內容，避免覆蓋其他 Agent 的變更
 - 所有回應與文件使用繁體中文
 - 修改前先確認計畫，優先保留原有資料結構
-- **本資料夾是技能原始檔**。改動一律改這裡，改完跑 `check-sync.ps1 -Sync` 覆蓋四份安裝副本（Claude Code／Codex／OpenCode／Antigravity）並驗證
-- **同步只能用 `-Sync`（內部 `Copy-Item`）**，絕不可用 Write/Edit 重建副本——那會把 Agent context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣
+- **本資料夾是技能原始檔**。改動一律改這裡，改完跑 README 的 `Copy-Item` 段覆蓋四份安裝副本（Claude Code／Codex／OpenCode／Antigravity）；跑之前先 `git diff HEAD --stat` 確認源檔可信
+- **同步只能用 `Copy-Item`（從磁碟複製）**，絕不可用 Write/Edit 重建副本——那會把 Agent context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣
+- 三技能的步驟 0 一律跑 `chezmoi status`：有任何輸出就停下來問使用者，沒裝 chezmoi 就略過
 - 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了
 - `.ps1` 規則相反：**必須含 BOM**，否則 PowerShell 5.1 當成 ANSI 讀，中文字串爛掉
 
