@@ -84,21 +84,29 @@ foreach ($d in $dests) {
 
 > ⚠️ **絕不可請 Agent 用 Write/Edit 重建副本**——那會把它 context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣，只有比對才抓得到。同步一律走上面那段 `Copy-Item`（從磁碟複製）。在「之前已開過的舊對話」裡要求同步時風險最高。
 
-### 步驟 0：`chezmoi status` 前置檢查
+### 步驟 0：dotfile 前置檢查（委派 `chezmoi-sync`）
 
-三個技能的 SKILL.md 都在「步驟 0」跑一次這行，確認本機 dotfile 沒有未處理的漂移：
+三個技能的 SKILL.md 都在「步驟 0」先確認本機 dotfile 沒有未處理的漂移。**判讀邏輯不寫在這三個技能裡**，只先問一句這台裝了沒：
 
 ```powershell
-if (Get-Command chezmoi -ErrorAction SilentlyContinue) { chezmoi status } else { "chezmoi 未安裝，略過此步" }
+if (Get-Command chezmoi -ErrorAction SilentlyContinue) { "有 chezmoi" } else { "chezmoi 未安裝，略過此步" }
 ```
 
-- **沒有任何輸出** → 一致，技能照常往下做，不佔版面回報
-- **印出任何一行** → 停下來，把原始輸出貼給你再問怎麼處理（`chezmoi apply` 覆蓋本機／`chezmoi add` 收編本機改動），Agent 不自己決定
+有裝就**載入 `chezmoi-sync` 技能，跑到它的「步驟 2：落差 B」為止**（落差 A＝家目錄 vs 來源，落差 B＝來源 vs GitHub），不做它的步驟 3、4：
+
+- **落差 A、B 都乾淨** → 一致，技能照常往下做，不佔版面回報
+- **任一段有落差** → 停下來，改跑 `chezmoi-sync` 的完整流程（步驟 3、4），照它的報告格式說明並等你點頭，技能在此暫停
 - **沒裝 chezmoi** → 整步略過，不影響技能執行
 
 這是為了補一個盲點：安裝副本落後或被就地改過時，技能會照舊版邏輯默默跑完，沒人會發現。有用 chezmoi 管 dotfile 的電腦就順便有了這道檢查，沒用的電腦維持原本行為。
 
-> ⚠️ `chezmoi status` 比的是「本機檔案 vs chezmoi source」，跟上面那段 `Copy-Item`（GDrive 原始檔 → 四份安裝副本）是兩條不同路徑。要讓步驟 0 真的看得到技能副本的漂移，得先把那四個技能目錄納入 chezmoi 管理。
+**為什麼委派而不自己判**：`chezmoi status` 只比得出「本機檔案 vs chezmoi source」，兩邊**一起舊**時它印空的、看起來一切正常。要抓這種盲區得再問 git「來源 repo 跟 GitHub 差多少」，而那套判讀（含先收上去再拉下來的順序、`readonly_` 前綴、憑證檢查）已經完整寫在 `chezmoi-sync` 裡——只該有一份，不該在三個技能裡各抄一次。
+
+`chezmoi-sync` 的原始檔在 `我的雲端硬碟/agents/chezmoi-setup/chezmoi-sync/`（另一個專案、另一套機制，不放進本 repo）。
+
+> ⚠️ **目前這道檢查是空轉的**：三台都還沒裝 chezmoi（遠端 repo `dotfiles-agent-skills` 已刪待重建），`chezmoi-sync` 也還沒安裝到任何技能目錄，所以每次都走「未安裝 → 略過」。等 chezmoi 重建、`chezmoi-sync` 裝進四家技能目錄就自動生效。
+
+> ⚠️ 上面那段 `Copy-Item`（GDrive 原始檔 → 四份安裝副本）跟 chezmoi 是**兩條不同路徑**，而且 `Copy-Item` 是繞過 chezmoi 直接寫 target。所以跑完同步後 `chezmoi status` 第一欄**必然**出現這三個技能——那是正常的，正解是 `chezmoi add --recursive` 收進來源再 push，不是 `apply`（會拿舊的 source 蓋掉剛同步好的新版）。另外，要讓步驟 0 真的看得到技能副本的漂移，得先把那四個技能目錄納入 chezmoi 管理。
 
 > ⚠️ 編輯 SKILL.md 時**不要存成含 BOM 的 UTF-8**。開頭的 `EF BB BF` 會讓 frontmatter 解析失敗，技能雖然載入得了但描述變成 `---`、觸發不了。
 

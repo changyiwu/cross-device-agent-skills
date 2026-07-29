@@ -19,7 +19,7 @@
 - [x] 階段二：本專案自身完成初始化（agents.md ＋ handoff.md ＋ git ＋ Obsidian）
 - [ ] 階段三：跨電腦實測（在另一台電腦「開工／收工」驗證流程）
 - [ ] 階段四：依實測回饋調整技能內容
-- [ ] 階段五：把四個工具的全域技能目錄納入 chezmoi 管理，讓步驟 0 的 `chezmoi status` 真的涵蓋**所有**全域技能（非只這三個）
+- [ ] 階段五：把四個工具的全域技能目錄納入 chezmoi 管理（含 `chezmoi-sync` 技能本身），讓步驟 0 真的涵蓋**所有**全域技能（非只這三個）
 
 ## 資料夾結構
 
@@ -56,7 +56,7 @@ cross-device-agent-skills/
 - 修改前先確認計畫，優先保留原有資料結構
 - **本資料夾是技能原始檔**。改動一律改這裡，改完跑 README 的 `Copy-Item` 段覆蓋四份安裝副本（Claude Code／Codex／OpenCode／Antigravity）；跑之前先 `git diff HEAD --stat` 確認源檔可信
 - **同步只能用 `Copy-Item`（從磁碟複製）**，絕不可用 Write/Edit 重建副本——那會把 Agent context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣
-- 三技能的步驟 0 一律跑 `chezmoi status`：有任何輸出就停下來問使用者，沒裝 chezmoi 就略過
+- 三技能的步驟 0 一律**委派 `chezmoi-sync` 技能**（原始檔在 `我的雲端硬碟/agents/chezmoi-setup/chezmoi-sync/`）跑到它的「步驟 2」為止：有任何落差就停下來、改跑它的完整流程問使用者，沒裝 chezmoi 就略過。**判讀邏輯不要複製一份到三技能裡**——只該有一份
 - 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了
 - `.ps1` 規則相反：**必須含 BOM**，否則 PowerShell 5.1 當成 ANSI 讀，中文字串爛掉
 
@@ -69,3 +69,4 @@ cross-device-agent-skills/
 - 2026-07-28（33fc992）：`project-init` 補建 `CLAUDE.md` 橋接檔（Claude Code 不讀 `agents.md`），新增 `templates/claude.template.md`，README ＋ agents.md 同步說明。
 - 2026-07-29（aaf273d）：移除 `check-sync.ps1`，三技能步驟 0 改用 `chezmoi status`——版本檢查的職責交給 dotfile 管理工具，技能只負責回報、不自己決定 `apply`／`add`。代價是步驟 0 目前只涵蓋已納入 chezmoi 的檔案，故新增階段五。
 - 2026-07-29（a516780，NB-YI）：刪掉 `shutdown/SKILL.md` 的「收工的專案是技能 repo 本身時」整節，步驟 0 底下指向它的那句改為指向 README 的「本副本的設定（changyiwu）」同步段。收工流程自此**不再內含執行同步的環節**，同步一律手動跑 README 那段 `Copy-Item`。
+- 2026-07-29（NB-YI，晚）：三技能步驟 0 從自己跑 `chezmoi status` 改為**委派 `chezmoi-sync` 技能**（`chezmoi-setup` 專案）跑到它的「步驟 2」為止，有落差才升級成它的完整流程。起因：`chezmoi status` 只比 source ↔ target，兩邊一起舊會印**假的乾淨**，要補得再問 git「來源 repo vs GitHub」——而那套判讀（含先收後拉的順序、`readonly_` 前綴、憑證檢查）`chezmoi-sync` 已經寫得更完整，不該在三技能裡再抄一份。同時放寬 `startup` 核心原則 #1：dotfile 的處置委派出去，不算違反開工唯讀。README 的〈步驟 0〉整節同步改寫。**尚未生效**：三台都還沒裝 chezmoi（遠端 repo `dotfiles-agent-skills` 已刪待重建），且 `chezmoi-sync` 還沒安裝到任何技能目錄，故目前每次都走「未安裝 → 略過」。本次在 **PC-YI-SL** 收工，四份副本已在這台同步（hash 全對）；**NB-YI 的四份副本尚未跟上**。

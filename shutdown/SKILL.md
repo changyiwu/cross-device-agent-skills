@@ -7,19 +7,21 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 
 ## 步驟 0：dotfile 狀態前置檢查（在做下面任何事之前）
 
-安裝副本被改過或落後時，這個技能會照舊版邏輯跑完而**沒人會發現**。所以先問一次 chezmoi：
+安裝副本被改過或落後時，這個技能會照舊版邏輯跑完而**沒人會發現**。所以先確認 dotfile 三處（家目錄 target／來源 repo source／GitHub remote）一致：
 
 ```powershell
-if (Get-Command chezmoi -ErrorAction SilentlyContinue) { chezmoi status } else { "chezmoi 未安裝，略過此步" }
+if (Get-Command chezmoi -ErrorAction SilentlyContinue) { "有 chezmoi" } else { "chezmoi 未安裝，略過此步" }
 ```
 
-按輸出處理：
+判讀邏輯不重寫在這裡——有 chezmoi 就**載入 `chezmoi-sync` 技能，跑到它的「步驟 2：落差 B」為止**（落差 A＝家目錄 vs 來源，落差 B＝來源 vs GitHub），**不做**它的步驟 3、4。
 
-| 輸出 | 怎麼做 |
+| 結果 | 怎麼做 |
 |------|--------|
-| 沒有任何一行 | 一致，直接往下做，**不用回報這一步** |
-| 印出任何一行 | **停下來**，把原始輸出貼給使用者再問怎麼處理。左欄＝source 有變動待 `chezmoi apply`；右欄＝本機檔案被改過，要 `chezmoi add` 收編或用 `apply` 覆蓋。**不要自己決定跑哪一個** |
 | `chezmoi 未安裝，略過此步` | 這台電腦沒裝，略過，照常往下做 |
+| 落差 A、B 都乾淨 | 一致，直接往下做，**不用回報這一步** |
+| 任一段有落差 | **停下來**，改跑 `chezmoi-sync` 的完整流程（步驟 3、4），照它的報告格式給使用者，等點頭再動手。**收工在此暫停**，處理完才回來繼續 |
+
+> **收工是最常撞到落差 A 的時機，而且那通常是好事。** 剛跑過 README 的 `Copy-Item` 同步四份安裝副本的話，`chezmoi status` 第一欄**必然**出現這三個技能——因為 `Copy-Item` 是繞過 chezmoi 直接寫 target。這不是異常，正解是 `chezmoi add --recursive` 收進來源再 commit + push，`chezmoi-sync` 會這樣判。別當成壞掉，也別因此改用 `apply`（那會拿舊的 source 蓋掉剛同步好的新版）。
 
 > 技能原始檔改完要同步四份安裝副本時，走技能 repo `README.md` 的「本副本的設定（changyiwu）」那段 `Copy-Item`（從磁碟複製），跑之前先照那段的指示確認 worktree 乾淨。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
 
