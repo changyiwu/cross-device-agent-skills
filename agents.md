@@ -65,4 +65,7 @@ cross-device-agent-skills/
 - 2026-07-22：將 Codex 全域 Skill 安裝位置更新為 `~/.agents/skills/`，並同步 README、project-init、startup、shutdown 四處說明。
 - 2026-07-22（晚）：`project-init` 建 GitHub repo 時改為**詢問使用者公開或私有**（原本寫死 private），並同步四份安裝副本。
 - 2026-07-26：新增「同步安裝副本前先跑 `git diff HEAD --stat`」的防呆（README ＋ `shutdown/SKILL.md` 兩處）。起因是本次 GDrive 餵出過期檔案內容，據此同步一度把四份副本降版。已確認 Codex 讀取路徑 `~/.agents/skills/` 正確。
-- 2026-07-27（NB-YI）：發現這台電腦四份副本的 `shutdown` 都停在 a53bb0f 之前（`startup`／`project-init` 正常），先補同步。接著新增 `check-sync.ps1` 並在三個技能加「步驟 0」前置檢查——原本只有 `shutdown` 在「收工的專案是技能 repo 本身」時才比對版本，在其他專案跑三技能完全不檢查。腳本含三道關卡，其中 `BEHIND` 是硬關卡（連 `-Sync` 也擋），用來補「源檔與副本一起舊」的偵測盲區：那種情況純內容比對會印**假的 `OK`**。四項關卡行為均實測驗證過。
+- 2026-07-27（NB-YI）：發現這台電腦四份副本的 `shutdown` 都停在 a53bb0f 之前（`startup`／`project-init` 正常），先補同步。接著新增 `check-sync.ps1` 並在三個技能加「步驟 0」前置檢查——原本只有 `shutdown` 在「收工的專案是技能 repo 本身」時才比對版本，在其他專案跑三技能完全不檢查。腳本含三道關卡，其中 `BEHIND` 是硬關卡（連 `-Sync` 也擋），用來補「源檔與副本一起舊」的偵測盲區：那種情況純內容比對會印**假的 `OK`**。四項關卡行為均實測驗證過。（`check-sync.ps1` 已於 07-29 移除，見下）
+- 2026-07-28（33fc992）：`project-init` 補建 `CLAUDE.md` 橋接檔（Claude Code 不讀 `agents.md`），新增 `templates/claude.template.md`，README ＋ agents.md 同步說明。
+- 2026-07-29（aaf273d）：移除 `check-sync.ps1`，三技能步驟 0 改用 `chezmoi status`——版本檢查的職責交給 dotfile 管理工具，技能只負責回報、不自己決定 `apply`／`add`。代價是步驟 0 目前只涵蓋已納入 chezmoi 的檔案，故新增階段五。
+- 2026-07-29（a516780，NB-YI）：刪掉 `shutdown/SKILL.md` 的「收工的專案是技能 repo 本身時」整節，步驟 0 底下指向它的那句改為指向 README 的「本副本的設定（changyiwu）」同步段。收工流程自此**不再內含執行同步的環節**，同步一律手動跑 README 那段 `Copy-Item`。
