@@ -25,7 +25,7 @@ if (Get-Command chezmoi -ErrorAction SilentlyContinue) { "有 chezmoi" } else { 
 
 > 為什麼要委派而不自己判：`chezmoi status` 只比得出 source ↔ target，兩邊**一起舊**時它印空的、看起來一切正常。要抓這種盲區得再問 git「來源 repo 跟 GitHub 差多少」，而那套判讀（含先收後拉的順序、`readonly_` 前綴、憑證檢查）已經完整寫在 `chezmoi-sync` 裡，只該有一份。
 
-> 技能原始檔改完要同步四份安裝副本時，用 README 的 `Copy-Item` 段（從磁碟複製）。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
+> 技能原始檔改完要同步四份安裝副本時，說「同步技能」交給 `sync-skills` 技能（從磁碟 `Copy-Item` 複製並逐檔驗證）。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
 
 ## 核心原則
 

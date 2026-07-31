@@ -54,7 +54,7 @@ cross-device-agent-skills/
 - 修改共用檔案前先讀最新內容，避免覆蓋其他 Agent 的變更
 - 所有回應與文件使用繁體中文
 - 修改前先確認計畫，優先保留原有資料結構
-- **本資料夾是技能原始檔**。改動一律改這裡，改完跑 README 的 `Copy-Item` 段覆蓋四份安裝副本（Claude Code／Codex／OpenCode／Antigravity）；跑之前先 `git diff HEAD --stat` 確認源檔可信
+- **本資料夾是技能原始檔**。改動一律改這裡，改完說「同步技能」，委派 `sync-skills` 技能（原始檔在 `我的雲端硬碟/agents/skill-sync/sync-skills/`）覆蓋四份安裝副本（Claude Code／Codex／OpenCode／Antigravity）。**同步的判讀邏輯不要抄一份到本 repo**——源檔可信度檢查、逐檔 hash 驗證、殘留檔偵測都在那個技能裡，只該有一份
 - **同步只能用 `Copy-Item`（從磁碟複製）**，絕不可用 Write/Edit 重建副本——那會把 Agent context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣
 - 三技能的步驟 0 一律**委派 `chezmoi-sync` 技能**（原始檔在 `我的雲端硬碟/agents/chezmoi-setup/chezmoi-sync/`）跑到它的「步驟 2」為止：有任何落差就停下來、改跑它的完整流程問使用者，沒裝 chezmoi 就略過。**判讀邏輯不要複製一份到三技能裡**——只該有一份
 - 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了

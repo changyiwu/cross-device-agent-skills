@@ -57,32 +57,13 @@ git clone https://github.com/mathruffian-dot/cross-device-agent-skills.git
 | OpenCode | `~/.config/opencode/skills/` |
 | Antigravity | `~/.gemini/config/skills/` |
 
-改動一律動原始檔，改完跑這段一次覆蓋四份。**跑之前先確認 worktree 乾淨**：
+改動一律動原始檔，改完在本專案說一句「**同步技能**」，交給 `sync-skills` 技能處理：它會先用 git 驗證源檔可信、再 `Copy-Item` 覆蓋這台裝了的技能目錄（沒裝的自動略過）、最後逐檔 hash 比對證明四份真的一致。換一台電腦也是同一句話。
 
-```bash
-git diff HEAD --stat
-```
+`sync-skills` 的原始檔在 `我的雲端硬碟/agents/skill-sync/sync-skills/`（另一個專案，不放進本 repo）。**第一次**要先跑那邊 README 的手動安裝段，技能裝好口令才觸發得了。
 
-沒列出非預期的改動再往下跑。GDrive 偶爾會餵出過期的檔案內容（磁碟讀到舊 bytes，但 git 的 HEAD 已是新版），這時直接同步等於**把四份副本一起降版**——只看檔案內容或時間戳看不出來，一定要問 git。
-
-```powershell
-$src = "$HOME\我的雲端硬碟\agents\cross-device-agent-skills"
-$dests = @(
-  "$HOME\.claude\skills",
-  "$HOME\.agents\skills",
-  "$HOME\.config\opencode\skills",
-  "$HOME\.gemini\config\skills"
-)
-foreach ($d in $dests) {
-  foreach ($s in 'project-init','startup','shutdown') {
-    Copy-Item "$src\$s" "$d\" -Recurse -Force
-  }
-}
-```
-
-換一台電腦時，等 GDrive 同步完再跑同一段指令即可（該電腦沒裝的工具，把對應那行從 `$dests` 拿掉）。
-
-> ⚠️ **絕不可請 Agent 用 Write/Edit 重建副本**——那會把它 context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣，只有比對才抓得到。同步一律走上面那段 `Copy-Item`（從磁碟複製）。在「之前已開過的舊對話」裡要求同步時風險最高。
+> ⚠️ **同步的判讀邏輯不在這裡，別再抄一份**。三個看不出來的坑——Agent 用 Write/Edit「重建」副本、雲端硬碟餵出過期的檔案 bytes 導致四份一起降版、同步完沒驗——都寫在 `sync-skills` 裡，只該有一份。
+>
+> ⚠️ **絕不可請 Agent 用 Write/Edit 重建副本**——那會把它 context 裡記得的舊內容寫進去，事後看起來跟正常同步一模一樣，只有比對才抓得到。在「之前已開過的舊對話」裡要求同步時風險最高。這條在這裡再寫一次，是因為它是**要求同步的人**該知道的事，不是只有執行的 Agent 該知道。
 
 ### 步驟 0：dotfile 前置檢查（委派 `chezmoi-sync`）
 
@@ -106,7 +87,7 @@ if (Get-Command chezmoi -ErrorAction SilentlyContinue) { "有 chezmoi" } else { 
 
 > ⚠️ **目前這道檢查是空轉的**：三台都還沒裝 chezmoi（遠端 repo `dotfiles-agent-skills` 已刪待重建），`chezmoi-sync` 也還沒安裝到任何技能目錄，所以每次都走「未安裝 → 略過」。等 chezmoi 重建、`chezmoi-sync` 裝進四家技能目錄就自動生效。
 
-> ⚠️ 上面那段 `Copy-Item`（GDrive 原始檔 → 四份安裝副本）跟 chezmoi 是**兩條不同路徑**，而且 `Copy-Item` 是繞過 chezmoi 直接寫 target。所以跑完同步後 `chezmoi status` 第一欄**必然**出現這三個技能——那是正常的，正解是 `chezmoi add --recursive` 收進來源再 push，不是 `apply`（會拿舊的 source 蓋掉剛同步好的新版）。另外，要讓步驟 0 真的看得到技能副本的漂移，得先把那四個技能目錄納入 chezmoi 管理。
+> ⚠️ `sync-skills`（GDrive 原始檔 → 四份安裝副本）跟 chezmoi 是**兩條不同路徑**，而且它的 `Copy-Item` 是繞過 chezmoi 直接寫 target。所以跑完同步後 `chezmoi status` 第一欄**必然**出現這三個技能——那是正常的，正解是 `chezmoi add --recursive` 收進來源再 push，不是 `apply`（會拿舊的 source 蓋掉剛同步好的新版）。`sync-skills` 的步驟 7 會提醒這件事。另外，要讓步驟 0 真的看得到技能副本的漂移，得先把那四個技能目錄納入 chezmoi 管理。
 
 > ⚠️ 編輯 SKILL.md 時**不要存成含 BOM 的 UTF-8**。開頭的 `EF BB BF` 會讓 frontmatter 解析失敗，技能雖然載入得了但描述變成 `---`、觸發不了。
 

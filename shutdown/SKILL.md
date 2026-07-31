@@ -21,9 +21,9 @@ if (Get-Command chezmoi -ErrorAction SilentlyContinue) { "有 chezmoi" } else { 
 | 落差 A、B 都乾淨 | 一致，直接往下做，**不用回報這一步** |
 | 任一段有落差 | **停下來**，改跑 `chezmoi-sync` 的完整流程（步驟 3、4），照它的報告格式給使用者，等點頭再動手。**收工在此暫停**，處理完才回來繼續 |
 
-> **收工是最常撞到落差 A 的時機，而且那通常是好事。** 剛跑過 README 的 `Copy-Item` 同步四份安裝副本的話，`chezmoi status` 第一欄**必然**出現這三個技能——因為 `Copy-Item` 是繞過 chezmoi 直接寫 target。這不是異常，正解是 `chezmoi add --recursive` 收進來源再 commit + push，`chezmoi-sync` 會這樣判。別當成壞掉，也別因此改用 `apply`（那會拿舊的 source 蓋掉剛同步好的新版）。
+> **收工是最常撞到落差 A 的時機，而且那通常是好事。** 剛用 `sync-skills` 同步過四份安裝副本的話，`chezmoi status` 第一欄**必然**出現這三個技能——因為 `Copy-Item` 是繞過 chezmoi 直接寫 target。這不是異常，正解是 `chezmoi add --recursive` 收進來源再 commit + push，`chezmoi-sync` 會這樣判。別當成壞掉，也別因此改用 `apply`（那會拿舊的 source 蓋掉剛同步好的新版）。
 
-> 技能原始檔改完要同步四份安裝副本時，走技能 repo `README.md` 的「本副本的設定（changyiwu）」那段 `Copy-Item`（從磁碟複製），跑之前先照那段的指示確認 worktree 乾淨。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
+> 技能原始檔改完要同步四份安裝副本時，說「同步技能」交給 `sync-skills` 技能（原始檔在 `我的雲端硬碟/agents/skill-sync/sync-skills/`）：它會先用 git 確認源檔可信、`Copy-Item` 從磁碟複製、再逐檔 hash 比對。**絕不可用 Write/Edit 重建副本**——那會把 context 裡記得的舊內容寫進去，而且事後看起來跟正常同步一模一樣。
 
 ---
 

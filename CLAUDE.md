@@ -8,5 +8,5 @@
 
 ## Claude Code 專屬
 
-- 改技能一律改本資料夾的原始檔，改完跑 README 的 `Copy-Item` 同步段；**絕不可用 Write/Edit 重建 `~/.claude/skills/` 的安裝副本**
+- 改技能一律改本資料夾的原始檔，改完說「同步技能」交給 `sync-skills` 技能覆蓋四份副本；**絕不可用 Write/Edit 重建 `~/.claude/skills/` 的安裝副本**
 - 驗證橋接是否生效：跑 `/context`，看 **Memory files** 有沒有列到 `CLAUDE.md`
