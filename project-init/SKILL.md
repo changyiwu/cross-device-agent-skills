@@ -40,7 +40,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 
 1. **掃描資料夾現況**：列出既有檔案，若已有 `agents.md`、`handoff.md` 或 `CLAUDE.md` → 停下來問使用者是否要覆蓋
 2. **詢問使用者**：專案名稱、一句話目標、關鍵時程（沒有就留白，不要硬編）
-3. **建立 `agents.md`**：用 `templates/agents.template.md` 為底，填入實際內容；「資料夾結構」區塊由掃描結果自動生成
+3. **建立 `agents.md`**：用 `templates/agents.template.md` 為底，填入實際內容；「資料夾結構」區塊由掃描結果自動生成。範本裡的〈三個檔案的職責〉整節**要留著**——它是防止藍圖日後被寫成流水帳的護欄；〈專案專屬規則〉問使用者有沒有常設約束（技術限制、部署方式、安全邊界），沒有就整節刪掉
 4. **建立 `handoff.md`**：用 `templates/handoff.template.md` 為底，「目前做到哪」填「專案初始化完成」，更新者填 Agent 名＋電腦名（PowerShell 用 `$env:COMPUTERNAME` 取得）
 5. **建立 `CLAUDE.md` 橋接檔**：用 `templates/claude.template.md` 為底。內容只有 import 加上 Claude 專屬區塊——**專案內容一律寫進 `agents.md`，不要複製一份到這裡**（兩份會分叉）：
 
@@ -110,6 +110,8 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 
 13. 在 vault 根目錄建立與專案資料夾**同名**的資料夾
 14. 建立 `<資料夾名>/專案工作流程.md`，內容包含：專案背景與詳細脈絡、決策紀錄（為什麼這樣做）、素材與相關筆記連結、🕳️ 踩坑筆記、🗓️ 最近更動紀錄表格（第一行寫今天的初始化）
+
+    這五段是**專案歷史的正本**：`agents.md` 只放長期有效的規則、`handoff.md` 每次收工整份重寫，兩者都不記得發生過什麼。沒建 L3 的專案，歷史只剩 `git log`——那種專案的 commit 訊息要寫得夠完整。
 15. **回填 `agents.md`** 同步層級表的 Obsidian 欄（vault 內路徑）
 
 ### 回報
@@ -128,6 +130,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 - ❌ 未經確認就覆蓋既有的 `agents.md`／`handoff.md`／`CLAUDE.md`
 - ❌ 只建 `agents.md` 就結束（Claude Code 讀不到，一定要補 `CLAUDE.md` 橋接）
 - ❌ 把專案內容同時抄進 `agents.md` 和 `CLAUDE.md`（藍圖只留一份，`CLAUDE.md` 只做 import）
+- ❌ 在初始的 `agents.md` 裡放「最近進度」或決策記錄區塊（藍圖只放長期有效的東西；歷史寫 Obsidian 或靠 `git log`）
 - ❌ 電腦沒 gh／Obsidian 時報錯中斷（正確行為：跳過該層級、在回報中註明原因）
 - ❌ 把 `.env`、API key 之類敏感檔 commit 進 git
 - ❌ 把 `handoff.md` commit 進 repo（含真實電腦名與本機路徑；私有 repo 也一樣，它可能之後轉公開）
