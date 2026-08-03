@@ -19,6 +19,7 @@
 - [x] 階段二：本專案自身完成初始化（agents.md ＋ handoff.md ＋ git ＋ Obsidian）
 - [ ] 階段三：跨電腦實測（在另一台電腦「開工／收工」驗證流程）
 - [ ] 階段四：依實測回饋調整技能內容
+- [ ] 階段五：既有 30 個專案的 `agents.md` 依「時效性」規則整理（16 個長出 `## 最近進度`；本專案已於 2026-08-03 示範）
 
 ## 資料夾結構
 
@@ -43,29 +44,33 @@ cross-device-agent-skills/
 
 | 層級 | 平台 | 位置 | 讀取時機 |
 |------|------|------|---------|
-| L1 | 本地（GDrive） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接） | 每個 session |
+| L1 | 本地（GDrive） | `agents.md`＋`handoff.md`（不進 git，只走雲端硬碟）＋`CLAUDE.md`（橋接） | 每個 session |
 | L2 | GitHub | https://github.com/changyiwu/cross-device-agent-skills （公開） | 指定時 |
 | L3 | Obsidian | `cross-device-agent-skills/專案工作流程.md` | 有需要時 |
+
+## 三個檔案的職責（依「時效性」分家，不是依「詳細程度」）
+
+| 檔案 | 時效 | 寫入方式 | 放什麼 |
+|------|------|---------|--------|
+| `handoff.md` | **只對下一個 session 有效**，過期即丟 | 每次收工整份重寫 | 做到哪、下一步、**這次**的暫時 workaround |
+| `agents.md`（本檔） | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
+| Obsidian／`git log` | **歷史**：發生過什麼、為什麼 | 只增不刪 | 決策紀錄、踩坑完整版、逐次進度 |
+
+驗收標準：**`handoff.md` 整份刪掉，不應損失任何長期資訊**——會的話代表該升級進本檔卻沒升級。
+
+**本檔不要出現的東西**：❌ `## 最近進度`／逐次工作紀錄（本檔曾有一節，2026-08-03 移除——內容在 Obsidian「🗓️ 最近更動紀錄」條條都有）、❌ 決策理由與踩坑完整版（在 Obsidian「🧠 決策紀錄」「🕳️ 踩坑筆記」）。踩過的坑只把**結論**收斂成一條祈使句寫進下面的〈工作約定〉，原因留 Obsidian。
 
 ## 工作約定
 
 - 任何 Agent、任何電腦：**開工先讀 `handoff.md`，收工必更新 `handoff.md`**
+- `handoff.md` **不進 git**（含真實電腦名與本機絕對路徑），已列入 `.gitignore`，跨電腦靠雲端硬碟同步——不要把它加回版控
 - 修改共用檔案前先讀最新內容，避免覆蓋其他 Agent 的變更
 - 所有回應與文件使用繁體中文
 - 修改前先確認計畫，優先保留原有資料結構
 - **本資料夾是技能原始檔**。改動一律改這裡，改完說「同步技能」，委派全域技能 `sync-skills`（`skill-sync` 專案）覆蓋安裝副本。**同步的做法、驗證方式、注意事項都不要抄一份到本 repo**——只該有一份，在那個技能裡
+- **不要把三技能的「步驟 0」加回來**（已決定不裝 chezmoi，dotfile 漂移檢查整個不做）
+- 同步完的新版**要下一個 session 才生效**：技能副本是進 session 時載入的，同一個對話裡同步完仍然跑舊版。**重開 Claude Code 也算新 session**（判斷方式：比對副本 mtime 與 `Get-Process claude` 的 `StartTime`，啟動晚於寫入才是新版）
 - 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了
 - `.ps1` 規則相反：**必須含 BOM**，否則 PowerShell 5.1 當成 ANSI 讀，中文字串爛掉
-
-## 最近進度
-
-- 2026-07-22：將 Codex 全域 Skill 安裝位置更新為 `~/.agents/skills/`，並同步 README、project-init、startup、shutdown 四處說明。
-- 2026-07-22（晚）：`project-init` 建 GitHub repo 時改為**詢問使用者公開或私有**（原本寫死 private），並同步四份安裝副本。
-- 2026-07-26：新增「同步安裝副本前先跑 `git diff HEAD --stat`」的防呆（README ＋ `shutdown/SKILL.md` 兩處）。起因是本次 GDrive 餵出過期檔案內容，據此同步一度把四份副本降版。已確認 Codex 讀取路徑 `~/.agents/skills/` 正確。
-- 2026-07-27（NB-YI）：發現這台電腦四份副本的 `shutdown` 都停在 a53bb0f 之前（`startup`／`project-init` 正常），先補同步。接著新增 `check-sync.ps1` 並在三個技能加「步驟 0」前置檢查——原本只有 `shutdown` 在「收工的專案是技能 repo 本身」時才比對版本，在其他專案跑三技能完全不檢查。腳本含三道關卡，其中 `BEHIND` 是硬關卡（連 `-Sync` 也擋），用來補「源檔與副本一起舊」的偵測盲區：那種情況純內容比對會印**假的 `OK`**。四項關卡行為均實測驗證過。（`check-sync.ps1` 已於 07-29 移除，見下）
-- 2026-07-28（33fc992）：`project-init` 補建 `CLAUDE.md` 橋接檔（Claude Code 不讀 `agents.md`），新增 `templates/claude.template.md`，README ＋ agents.md 同步說明。
-- 2026-07-29（aaf273d）：移除 `check-sync.ps1`，三技能步驟 0 改用 `chezmoi status`——版本檢查的職責交給 dotfile 管理工具，技能只負責回報、不自己決定 `apply`／`add`。代價是步驟 0 目前只涵蓋已納入 chezmoi 的檔案，故新增階段五。
-- 2026-07-29（a516780，NB-YI）：刪掉 `shutdown/SKILL.md` 的「收工的專案是技能 repo 本身時」整節，步驟 0 底下指向它的那句改為指向 README 的「本副本的設定（changyiwu）」同步段。收工流程自此**不再內含執行同步的環節**，同步一律手動跑 README 那段 `Copy-Item`。
-- 2026-07-29（NB-YI，晚）：三技能步驟 0 從自己跑 `chezmoi status` 改為**委派 `chezmoi-sync` 技能**（`chezmoi-setup` 專案）跑到它的「步驟 2」為止，有落差才升級成它的完整流程。起因：`chezmoi status` 只比 source ↔ target，兩邊一起舊會印**假的乾淨**，要補得再問 git「來源 repo vs GitHub」——而那套判讀（含先收後拉的順序、`readonly_` 前綴、憑證檢查）`chezmoi-sync` 已經寫得更完整，不該在三技能裡再抄一份。同時放寬 `startup` 核心原則 #1：dotfile 的處置委派出去，不算違反開工唯讀。README 的〈步驟 0〉整節同步改寫。**尚未生效**：三台都還沒裝 chezmoi（遠端 repo `dotfiles-agent-skills` 已刪待重建），且 `chezmoi-sync` 還沒安裝到任何技能目錄，故目前每次都走「未安裝 → 略過」。本次在 **PC-YI-SL** 收工，四份副本已在這台同步（hash 全對）；**NB-YI 的四份副本尚未跟上**。
-- 2026-07-31（PC-YI-FY，b6e3648／b80de57／a332ba4）：**同步流程整個搬出本 repo**。新開 `skill-sync` 專案（公開 repo），把 README 那段 `Copy-Item` 抽成全域技能 `sync-skills`，口令「同步技能」；抽出時補了三件原本沒有的事——源檔可信度檢查（落後遠端就停）、遞迴逐檔 hash 驗證（區分「內容差異」與「副本多出的殘留檔」）、chezmoi 善後提醒。本 repo 只留三行指向它。同時**移除三技能的步驟 0**（決定不裝 chezmoi）與路線圖階段五，`startup` 核心原則 #1 恢復成純粹的「開工只讀」。`handoff.md` 也在本日移出版控。07-27～07-29 提到步驟 0 的紀錄刻意保留，否則看不懂 `check-sync.ps1` 為何出現又消失。
-- 2026-08-03（NB-YI）：**`handoff.md` 全面移出 repo**。盤點 `我的雲端硬碟/agents/` 下 30 個 git 專案，29 個已 gitignore ＋ 停止追蹤，補做最後一個 `agents-lazy-guide`（f282836，公開 repo）。理由是交接檔天生含真實電腦名、`C:\Users\...` 絕對路徑與未公開的工作細節，而這些 repo 多半公開；它靠雲端硬碟同步，本來就不需要 git。接著把這條規則**寫進 `project-init`**：`.gitignore` 範本內建 `handoff.md`、步驟 9 加 commit 前確認、`agents.template.md` 的層級表與工作約定各補一條，讓每個新專案的藍圖自帶「不要把它加回版控」。**歷史未重寫**——舊 commit 裡的交接檔仍留在 30 個公開 repo 的歷史中，要清得另外決定。
+- **GDrive 上的 repo 一律以 git 為準，不以檔案內容或時間戳為準**。`git status` 出現 `MM` 但 `git diff HEAD` 為空時只是 LF/CRLF 差異，`git add --renormalize .` 可消除
+- PowerShell 裡 `'@{u}'` **一定要用單引號包起來**，裸的 `@{` 會被當成 hashtable 語法、直接噴解析錯誤
