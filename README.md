@@ -70,7 +70,7 @@ git clone https://github.com/mathruffian-dot/cross-device-agent-skills.git
 ## 三個核心檔案
 
 - **`agents.md`**（專案藍圖）：用 AGENTS.md 開放標準命名——Codex、Gemini CLI、OpenCode 都會自動讀，換 Agent 不用改檔案
-- **`handoff.md`**（交接檔）：記錄「目前做到哪／下一步／注意事項／**最後更新者＋電腦名＋有沒有 push**」。不管是**換電腦**還是**換 Agent** 接手，都先讀這個檔
+- **`handoff.md`**（交接檔）：記錄「目前做到哪／下一步／注意事項／**最後更新者＋電腦名＋有沒有 push**」。不管是**換電腦**還是**換 Agent** 接手，都先讀這個檔。**不進 git**（`project-init` 會直接寫進 `.gitignore`）——它天生含真實電腦名與 `C:\Users\...` 絕對路徑，跨電腦靠雲端硬碟同步就夠了，不需要也不該進公開 repo
 - **`CLAUDE.md`**（橋接檔）：**Claude Code 只讀 `CLAUDE.md`，不讀 `agents.md`**（[官方文件](https://code.claude.com/docs/en/memory)明載），所以要用一行 `@agents.md` 把藍圖 import 進來。藍圖仍只有一份，四家 Agent 都吃得到
 
 ```markdown

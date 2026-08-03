@@ -72,8 +72,18 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
    .env
    *.key
    credentials.*
+
+   # 交接檔含真實電腦名與本機路徑，只走雲端硬碟同步，不進公開 repo
+   handoff.md
    ```
+
+   **`handoff.md` 一律不進 repo**，即使這次選私有也一樣（repo 可能之後才轉公開，屆時沒人會記得回頭清）。交接檔天生會寫進真實電腦名（`PC-YI-FY`）、`C:\Users\<帳號>\...` 絕對路徑、未公開的工作細節與踩坑經過——這些對接續工作有用，對外人只是個資。它靠**雲端硬碟**跨電腦同步，本來就不需要 git；放進 repo 只是多一條外洩管道。
+
+   > 對**既有 repo** 補做時（不是初始化）：先 `git rm --cached handoff.md` 停止追蹤再 commit，本機檔案會保留。注意這只讓它從此不再更新，**舊 commit 裡的內容仍留在歷史**——要連歷史一起清得另外重寫並強制推送，那是獨立決定，不要順手做。
+
 9. **初始 commit**：`git add .` → `git commit -m "初始化專案：<專案名稱>"`
+
+   commit 前跑一次 `git status --short` 確認 `handoff.md` **沒有**出現在待提交清單裡。
 10. **建立 repo**：問使用者兩件事——
    - 偏好的英文 repo 名
    - **可見度：公開（public）還是私有（private）？** 一定要問，不要自己決定；使用者沒明確回答就用 **private**
@@ -109,6 +119,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 - ❌ 把專案內容同時抄進 `agents.md` 和 `CLAUDE.md`（藍圖只留一份，`CLAUDE.md` 只做 import）
 - ❌ 電腦沒 gh／Obsidian 時報錯中斷（正確行為：跳過該層級、在回報中註明原因）
 - ❌ 把 `.env`、API key 之類敏感檔 commit 進 git
+- ❌ 把 `handoff.md` commit 進 repo（含真實電腦名與本機路徑；私有 repo 也一樣，它可能之後轉公開）
 - ❌ 沒問使用者就決定 repo 可見度（一定要問公開或私有；沒回答才用 private 當預設）
 
 ## 注意事項

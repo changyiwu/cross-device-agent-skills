@@ -24,10 +24,10 @@
 
 ```
 cross-device-agent-skills/
-├─ README.md                 # 技能包說明、安裝方式、四工具同步指令
+├─ README.md                 # 技能包說明、安裝方式（同步改指向 sync-skills 技能）
 ├─ agents.md                 # 本檔：專案藍圖
 ├─ CLAUDE.md                 # 橋接檔（@agents.md，讓 Claude Code 也載得到藍圖）
-├─ handoff.md                # 交接檔（每次收工必更新）
+├─ handoff.md                # 交接檔（每次收工必更新；已 gitignore，只走雲端硬碟）
 ├─ project-init/
 │  ├─ SKILL.md               # 「初始化專案」技能
 │  └─ templates/
@@ -67,3 +67,5 @@ cross-device-agent-skills/
 - 2026-07-29（aaf273d）：移除 `check-sync.ps1`，三技能步驟 0 改用 `chezmoi status`——版本檢查的職責交給 dotfile 管理工具，技能只負責回報、不自己決定 `apply`／`add`。代價是步驟 0 目前只涵蓋已納入 chezmoi 的檔案，故新增階段五。
 - 2026-07-29（a516780，NB-YI）：刪掉 `shutdown/SKILL.md` 的「收工的專案是技能 repo 本身時」整節，步驟 0 底下指向它的那句改為指向 README 的「本副本的設定（changyiwu）」同步段。收工流程自此**不再內含執行同步的環節**，同步一律手動跑 README 那段 `Copy-Item`。
 - 2026-07-29（NB-YI，晚）：三技能步驟 0 從自己跑 `chezmoi status` 改為**委派 `chezmoi-sync` 技能**（`chezmoi-setup` 專案）跑到它的「步驟 2」為止，有落差才升級成它的完整流程。起因：`chezmoi status` 只比 source ↔ target，兩邊一起舊會印**假的乾淨**，要補得再問 git「來源 repo vs GitHub」——而那套判讀（含先收後拉的順序、`readonly_` 前綴、憑證檢查）`chezmoi-sync` 已經寫得更完整，不該在三技能裡再抄一份。同時放寬 `startup` 核心原則 #1：dotfile 的處置委派出去，不算違反開工唯讀。README 的〈步驟 0〉整節同步改寫。**尚未生效**：三台都還沒裝 chezmoi（遠端 repo `dotfiles-agent-skills` 已刪待重建），且 `chezmoi-sync` 還沒安裝到任何技能目錄，故目前每次都走「未安裝 → 略過」。本次在 **PC-YI-SL** 收工，四份副本已在這台同步（hash 全對）；**NB-YI 的四份副本尚未跟上**。
+- 2026-07-31（PC-YI-FY，b6e3648／b80de57／a332ba4）：**同步流程整個搬出本 repo**。新開 `skill-sync` 專案（公開 repo），把 README 那段 `Copy-Item` 抽成全域技能 `sync-skills`，口令「同步技能」；抽出時補了三件原本沒有的事——源檔可信度檢查（落後遠端就停）、遞迴逐檔 hash 驗證（區分「內容差異」與「副本多出的殘留檔」）、chezmoi 善後提醒。本 repo 只留三行指向它。同時**移除三技能的步驟 0**（決定不裝 chezmoi）與路線圖階段五，`startup` 核心原則 #1 恢復成純粹的「開工只讀」。`handoff.md` 也在本日移出版控。07-27～07-29 提到步驟 0 的紀錄刻意保留，否則看不懂 `check-sync.ps1` 為何出現又消失。
+- 2026-08-03（NB-YI）：**`handoff.md` 全面移出 repo**。盤點 `我的雲端硬碟/agents/` 下 30 個 git 專案，29 個已 gitignore ＋ 停止追蹤，補做最後一個 `agents-lazy-guide`（f282836，公開 repo）。理由是交接檔天生含真實電腦名、`C:\Users\...` 絕對路徑與未公開的工作細節，而這些 repo 多半公開；它靠雲端硬碟同步，本來就不需要 git。接著把這條規則**寫進 `project-init`**：`.gitignore` 範本內建 `handoff.md`、步驟 9 加 commit 前確認、`agents.template.md` 的層級表與工作約定各補一條，讓每個新專案的藍圖自帶「不要把它加回版控」。**歷史未重寫**——舊 commit 裡的交接檔仍留在 30 個公開 repo 的歷史中，要清得另外決定。
