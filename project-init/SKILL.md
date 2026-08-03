@@ -81,10 +81,21 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 
    > 對**既有 repo** 補做時（不是初始化）：先 `git rm --cached handoff.md` 停止追蹤再 commit，本機檔案會保留。注意這只讓它從此不再更新，**舊 commit 裡的內容仍留在歷史**——要連歷史一起清得另外重寫並強制推送，那是獨立決定，不要順手做。
 
-9. **初始 commit**：`git add .` → `git commit -m "初始化專案：<專案名稱>"`
+9. **建立 `.gitattributes`**（Windows 必備，一行就好）：
+   ```
+   * text=auto eol=lf
+   ```
+
+   Windows 的 git 預設 `core.autocrlf=true`，checkout 時會把 LF 寫成 CRLF。危險的不是轉換本身，而是**它不出現在任何檢查裡**：`git status` 比對索引時會先轉回 LF，所以永遠乾淨。於是「工作區的檔案已經跟 repo 裡的不是同一組位元組」這件事，用 git 完全查不出來——任何拿工作區檔案去複製、比對、hash 的工具（例如 `sync-skills` 同步四家技能副本）都會被這個看不見的差異絆倒，而且症狀是「內容差異」但兩邊讀起來一模一樣。
+
+   跟 `windows.appendAtomically false` 同一類：**建 repo 那一刻就該定好的環境約定**，事後補要一個一個掃。
+
+   > 對**既有 repo** 補做時：加完跑 `git status` 確認只多一個未追蹤檔。已經以 CRLF 進庫的檔案 git 不會回頭正規化（`text=auto` 刻意如此，避免整包 modified），所以那些檔案維持 CRLF——這沒關係，重點是它們**每台電腦都一樣**，不會漂移。
+
+10. **初始 commit**：`git add .` → `git commit -m "初始化專案：<專案名稱>"`
 
    commit 前跑一次 `git status --short` 確認 `handoff.md` **沒有**出現在待提交清單裡。
-10. **建立 repo**：問使用者兩件事——
+11. **建立 repo**：問使用者兩件事——
    - 偏好的英文 repo 名
    - **可見度：公開（public）還是私有（private）？** 一定要問，不要自己決定；使用者沒明確回答就用 **private**
 
@@ -93,13 +104,13 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
    gh repo create changyiwu/<repo-name> <可見度> --source=. --push
    ```
    選公開前先提醒一句：公開 repo 的內容與 commit 歷史所有人都看得到，確認沒有金鑰、個資或未公開素材再建。
-11. **回填 `agents.md`** 同步層級表的 GitHub 欄（repo 網址，並註明公開／私有）
+12. **回填 `agents.md`** 同步層級表的 GitHub 欄（repo 網址，並註明公開／私有）
 
 ### L3：Obsidian（MCP 可用才做，否則跳過並註明）
 
-12. 在 vault 根目錄建立與專案資料夾**同名**的資料夾
-13. 建立 `<資料夾名>/專案工作流程.md`，內容包含：專案背景與詳細脈絡、決策紀錄（為什麼這樣做）、素材與相關筆記連結、🕳️ 踩坑筆記、🗓️ 最近更動紀錄表格（第一行寫今天的初始化）
-14. **回填 `agents.md`** 同步層級表的 Obsidian 欄（vault 內路徑）
+13. 在 vault 根目錄建立與專案資料夾**同名**的資料夾
+14. 建立 `<資料夾名>/專案工作流程.md`，內容包含：專案背景與詳細脈絡、決策紀錄（為什麼這樣做）、素材與相關筆記連結、🕳️ 踩坑筆記、🗓️ 最近更動紀錄表格（第一行寫今天的初始化）
+15. **回填 `agents.md`** 同步層級表的 Obsidian 欄（vault 內路徑）
 
 ### 回報
 
