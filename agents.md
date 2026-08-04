@@ -68,6 +68,7 @@ cross-device-agent-skills/
 - 所有回應與文件使用繁體中文
 - 修改前先確認計畫，優先保留原有資料結構
 - **本資料夾是技能原始檔**。改動一律改這裡，改完說「同步技能」，委派全域技能 `sync-skills`（`skill-sync` 專案）覆蓋安裝副本。**同步的做法、驗證方式、注意事項都不要抄一份到本 repo**——只該有一份，在那個技能裡
+- **這台電腦的技能安裝來源永遠是本機這個資料夾，不是任何遠端 repo**。README 的〈安裝〉`git clone` 是寫給外部使用者的步驟，**不要**拿來當我方的安裝／更新途徑；要更新安裝副本就從本資料夾走 `sync-skills`
 - **不要把三技能的「步驟 0」加回來**（已決定不裝 chezmoi，dotfile 漂移檢查整個不做）
 - 同步完的新版**要下一個 session 才生效**：技能副本是進 session 時載入的，同一個對話裡同步完仍然跑舊版。**重開 Claude Code 也算新 session**（判斷方式：比對副本 mtime 與 `Get-Process claude` 的 `StartTime`，啟動晚於寫入才是新版）
 - 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了

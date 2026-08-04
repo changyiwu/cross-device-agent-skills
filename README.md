@@ -43,7 +43,7 @@
 ## 安裝
 
 ```bash
-git clone https://github.com/mathruffian-dot/cross-device-agent-skills.git
+git clone https://github.com/changyiwu/cross-device-agent-skills.git
 ```
 
 把 `project-init/`、`startup/`、`shutdown/` 三個資料夾複製到你的全域技能目錄：
