@@ -139,6 +139,6 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 ## 注意事項
 
 - 所有訊息與檔案內容使用**繁體中文**
-- 本 skill 的**原始檔**在 `我的雲端硬碟/agents/cross-device-agent-skills/project-init/`（靠 Google 雲端硬碟跨電腦同步）。**安裝副本共四份**：Claude Code `~/.claude/skills/`、Codex `~/.agents/skills/`、OpenCode `~/.config/opencode/skills/`、Antigravity `~/.gemini/config/skills/`。一律改原始檔，改完跑 README 的同步指令一次覆蓋四份
+- 本 skill 的**原始檔**在 `我的雲端硬碟/agents/cross-device-agent-skills/project-init/`（靠 Google 雲端硬碟跨電腦同步），各家 agent 的安裝副本是它的複本。一律改原始檔，改完說「**同步技能**」交給全域技能 `sync-skills` 覆蓋所有安裝副本——副本裝在哪幾個路徑、怎麼驗證，都由那個技能負責，這裡不重複一份
 - 之後的日常循環交給搭檔技能：開工（startup）讀、收工（shutdown）寫
 
