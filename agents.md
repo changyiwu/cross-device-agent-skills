@@ -28,6 +28,7 @@ cross-device-agent-skills/
 ├─ README.md                 # 技能包說明、安裝方式（同步改指向 sync-skills 技能）
 ├─ agents.md                 # 本檔：專案藍圖
 ├─ CLAUDE.md                 # 橋接檔（@agents.md，讓 Claude Code 也載得到藍圖）
+├─ platform.md               # 跨平台約定（Windows ↔ macOS）：路徑原則＋四個不報錯的坑
 ├─ handoff.md                # 交接檔（每次收工必更新；已 gitignore，只走雲端硬碟）
 ├─ project-init/
 │  ├─ SKILL.md               # 「初始化專案」技能
@@ -70,8 +71,9 @@ cross-device-agent-skills/
 - **本資料夾是技能原始檔**。改動一律改這裡，改完說「同步技能」，委派全域技能 `sync-skills`（`skill-sync` 專案）覆蓋安裝副本。**同步的做法、驗證方式、注意事項都不要抄一份到本 repo**——只該有一份，在那個技能裡
 - **這台電腦的技能安裝來源永遠是本機這個資料夾，不是任何遠端 repo**。README 的〈安裝〉`git clone` 是寫給外部使用者的步驟，**不要**拿來當我方的安裝／更新途徑；要更新安裝副本就從本資料夾走 `sync-skills`
 - **不要把三技能的「步驟 0」加回來**（已決定不裝 chezmoi，dotfile 漂移檢查整個不做）
+- 寫任何要跨 Windows／macOS 的路徑或 PowerShell 前，先讀 `platform.md`。核心一條：**路徑一律相對 cwd 或往上找，不要解析「雲端硬碟根」**；電腦名一律 `[Environment]::MachineName`，不可用 `$env:COMPUTERNAME`（macOS 是空字串且不報錯）
 - 同步完的新版**要下一個 session 才生效**：技能副本是進 session 時載入的，同一個對話裡同步完仍然跑舊版。**重開 Claude Code 也算新 session**（判斷方式：比對副本 mtime 與 `Get-Process claude` 的 `StartTime`，啟動晚於寫入才是新版）
-- 編輯 `SKILL.md` 時不可存成含 BOM 的 UTF-8，否則 frontmatter 解析失敗、技能觸發不了
-- `.ps1` 規則相反：**必須含 BOM**，否則 PowerShell 5.1 當成 ANSI 讀，中文字串爛掉
+- **所有檔案一律 UTF-8 無 BOM**（`.md`／`.ps1`／`.py` 都是，沒有例外）。`SKILL.md` 帶 BOM 會讓 frontmatter 解析失敗、技能觸發不了。舊的「`.ps1` 必須含 BOM」已隨 5.1 退場而廢止，詳見 `platform.md`
+- PowerShell 一律 **pwsh 7**，不支援 Windows PowerShell 5.1；跨平台能力不強求對等，mac 上沒有的能力要明說、不靜默降級（見 `platform.md`）
 - **GDrive 上的 repo 一律以 git 為準，不以檔案內容或時間戳為準**。`git status` 出現 `MM` 但 `git diff HEAD` 為空時只是 LF/CRLF 差異，`git add --renormalize .` 可消除
 - PowerShell 裡 `'@{u}'` **一定要用單引號包起來**，裸的 `@{` 會被當成 hashtable 語法、直接噴解析錯誤

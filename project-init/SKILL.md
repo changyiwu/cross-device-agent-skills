@@ -22,7 +22,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 > 但 **Claude Code 只讀 `CLAUDE.md`，不讀 `agents.md`**（[官方文件](https://code.claude.com/docs/en/memory)明載）——藍圖放在那裡它也不會載入。
 > 解法是官方建議的橋接：建一個 `CLAUDE.md`，第一行寫 `@agents.md` 把藍圖 import 進來。
 > 這樣藍圖仍只有一份（不會兩邊分叉），四家 Agent 都吃得到。
-> Windows 不用 symlink（要系統管理員或開發者模式），一律用 `@` import。
+> 一律用 `@` import，**不要用 symlink**：Windows 要系統管理員或開發者模式，而雲端硬碟同步 symlink 的行為在兩個平台都不可靠。
 
 ## 層級偵測（初始化看「這台電腦」有什麼）
 
@@ -41,7 +41,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 1. **掃描資料夾現況**：列出既有檔案，若已有 `agents.md`、`handoff.md` 或 `CLAUDE.md` → 停下來問使用者是否要覆蓋
 2. **詢問使用者**：專案名稱、一句話目標、關鍵時程（沒有就留白，不要硬編）
 3. **建立 `agents.md`**：用 `templates/agents.template.md` 為底，填入實際內容；「資料夾結構」區塊由掃描結果自動生成。範本裡的〈三個檔案的職責〉整節**要留著**——它是防止藍圖日後被寫成流水帳的護欄；〈專案專屬規則〉問使用者有沒有常設約束（技術限制、部署方式、安全邊界），沒有就整節刪掉
-4. **建立 `handoff.md`**：用 `templates/handoff.template.md` 為底，「目前做到哪」填「專案初始化完成」，更新者填 Agent 名＋電腦名（PowerShell 用 `$env:COMPUTERNAME` 取得）
+4. **建立 `handoff.md`**：用 `templates/handoff.template.md` 為底，「目前做到哪」填「專案初始化完成」，更新者填 Agent 名＋電腦名（PowerShell 用 `[Environment]::MachineName` 取得；⚠️ 不可用 `$env:COMPUTERNAME`，macOS 上是空字串且不報錯）
 5. **建立 `CLAUDE.md` 橋接檔**：用 `templates/claude.template.md` 為底。內容只有 import 加上 Claude 專屬區塊——**專案內容一律寫進 `agents.md`，不要複製一份到這裡**（兩份會分叉）：
 
    ```markdown
@@ -53,7 +53,7 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
    ```
 
    已有 `CLAUDE.md` 而使用者不要覆蓋時：只在檔案**最上方補一行 `@agents.md`**，其餘內容不動，並告知使用者哪些段落跟 `agents.md` 重複、可自行刪。
-6. 若路徑含「雲端硬碟」或「My Drive」→ 提醒使用者確認 Google 雲端硬碟桌面版的同步圖示已打勾（檔案要真的躺在雲端，換電腦才拿得到）
+6. 若路徑含「雲端硬碟」、「My Drive」或「CloudStorage」（macOS 的掛載點是 `~/Library/CloudStorage/GoogleDrive-<帳號>/`）→ 提醒使用者確認 Google 雲端硬碟桌面版的同步圖示已打勾（檔案要真的躺在雲端，換電腦才拿得到）
 
 ### L2：GitHub（gh 已登入才做，否則跳過並註明）
 
@@ -62,8 +62,10 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
    git init
    git config user.email "changyiwu@gmail.com"
    git config user.name "changyiwu"
-   git config windows.appendAtomically false   # GDrive 上跑 git 的必要設定，避免寫入錯誤
+   git config windows.appendAtomically false   # 僅 Windows 需要：GDrive 上跑 git 避免寫入錯誤
    ```
+
+   最後一行在 macOS 設了無效也無害，但沒必要——那是 Windows 端的 GDrive 檔案鎖問題。
 8. **建立 `.gitignore`**（GDrive 專用）：
    ```
    desktop.ini
@@ -77,11 +79,11 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
    handoff.md
    ```
 
-   **`handoff.md` 一律不進 repo**，即使這次選私有也一樣（repo 可能之後才轉公開，屆時沒人會記得回頭清）。交接檔天生會寫進真實電腦名（`PC-YI-FY`）、`C:\Users\<帳號>\...` 絕對路徑、未公開的工作細節與踩坑經過——這些對接續工作有用，對外人只是個資。它靠**雲端硬碟**跨電腦同步，本來就不需要 git；放進 repo 只是多一條外洩管道。
+   **`handoff.md` 一律不進 repo**，即使這次選私有也一樣（repo 可能之後才轉公開，屆時沒人會記得回頭清）。交接檔天生會寫進真實電腦名（`PC-YI-FY`）、本機絕對路徑（`C:\Users\<帳號>\...` 或 `/Users/<帳號>/...`）、未公開的工作細節與踩坑經過——這些對接續工作有用，對外人只是個資。它靠**雲端硬碟**跨電腦同步，本來就不需要 git；放進 repo 只是多一條外洩管道。
 
    > 對**既有 repo** 補做時（不是初始化）：先 `git rm --cached handoff.md` 停止追蹤再 commit，本機檔案會保留。注意這只讓它從此不再更新，**舊 commit 裡的內容仍留在歷史**——要連歷史一起清得另外重寫並強制推送，那是獨立決定，不要順手做。
 
-9. **建立 `.gitattributes`**（Windows 必備，一行就好）：
+9. **建立 `.gitattributes`**（跨平台必備，一行就好）：
    ```
    * text=auto eol=lf
    ```

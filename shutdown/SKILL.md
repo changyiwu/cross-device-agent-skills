@@ -52,7 +52,7 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
    - 🚦 目前狀態：可運行？哪些做一半？
    - ➡️ 下一步：具體、可執行的 1-3 項
    - ⚠️ 注意事項：**只放「下一個 session 仍未解」的東西**——未解風險、暫時 workaround、當前禁止變動項。已經解決的坑不要留在這裡
-   - 🕐 最後更新：時間＋更新者（Agent 名 @ `$env:COMPUTERNAME`）＋ Git push 狀態（先寫「待推」，L2 完成後回填）
+   - 🕐 最後更新：時間＋更新者（Agent 名 @ `[Environment]::MachineName`；⚠️ 不可用 `$env:COMPUTERNAME`，macOS 上是空字串且不報錯，會寫出沒有電腦名的交接檔）＋ Git push 狀態（先寫「待推」，L2 完成後回填）
 
 4. **⚠️ 分流（必做，不可略過；實作上與步驟 3 一起完成）**：把**上一版** `handoff.md` 的「⚠️ 注意事項」**逐條**檢視，判定每一條屬於哪一類：
 
@@ -118,7 +118,7 @@ description: 收工同步助手（三層級自動偵測）。當使用者說「�
 ## 注意事項
 
 - 所有訊息使用**繁體中文**
-- GDrive 內的 repo 首次操作若遇 git 寫入錯誤：`git config windows.appendAtomically false`
+- GDrive 內的 repo 首次操作若遇 git 寫入錯誤：`git config windows.appendAtomically false`（**Windows 專屬**；macOS 沒有這個問題，設了也無效）
 - **GDrive 上的 repo，一律以 git 為準、不以檔案內容為準**：GDrive 可能回傳過期內容，導致「讀檔看起來是舊版、`git status` 卻乾淨」。判斷版本用 `git diff HEAD`／`git log`，不要靠讀檔或看時間戳。`git status` 出現 `MM` 但 `git diff HEAD` 是空的，通常只是 LF/CRLF 差異，用 `git add --renormalize .` 消掉即可
 - 本 skill 的**原始檔**在 `我的雲端硬碟/agents/cross-device-agent-skills/shutdown/`（靠 Google 雲端硬碟跨電腦同步），各家 agent 的安裝副本是它的複本。一律改原始檔，改完說「**同步技能**」交給全域技能 `sync-skills` 覆蓋所有安裝副本——副本裝在哪幾個路徑、怎麼驗證，都由那個技能負責，這裡不重複一份
 
