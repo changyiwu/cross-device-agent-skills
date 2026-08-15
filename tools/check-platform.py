@@ -86,8 +86,12 @@ SKIP_NAMES = {"package-lock.json", "poetry.lock"}
 def read_allowlist(root: Path):
     """讀 repo 根目錄的 .platform-ok：列出「刻意保留平台專屬寫法」的檔案。
 
-    典型是教學文件裡示範 Windows 指令、旁邊已註明 macOS 版本的那種。
-    這些檔案跳過逐行規則（BOM 仍然檢查），而且**跳掉幾個檔會印在總結裡**——
+    兩種典型：教學文件裡示範 Windows 指令、旁邊已註明 macOS 版本的那種；
+    以及**目標讀者是 Windows PowerShell 5.1 的公開教學腳本**——那些檔案的 BOM 是
+    必要的（5.1 把無 BOM 的 UTF-8 當 ANSI 讀，中文會爛掉、腳本 parse 失敗），
+    不是還沒清掉的遺毒。
+
+    列在這裡的檔案**整份跳過**，含 BOM 檢查。**跳掉幾處會印在總結裡**——
     豁免必須看得見，否則就變成偷偷關掉檢查。
     """
     f = root / ".platform-ok"
@@ -119,13 +123,13 @@ def scan_repo(root: Path):
         if path.suffix.lower() not in TEXT_SUFFIXES:
             continue
 
-        raw = path.read_bytes()
-        if raw[:3] == b"\xef\xbb\xbf":
-            findings.append((rel, 1, "檔案有 BOM（規則是一律無 BOM）"))
-
         if rel.as_posix() in allow:
             skipped += 1
             continue
+
+        raw = path.read_bytes()
+        if raw[:3] == b"\xef\xbb\xbf":
+            findings.append((rel, 1, "檔案有 BOM（規則是一律無 BOM）"))
 
         text = raw.decode("utf-8", errors="replace")
         for lineno, line in code_lines(path, text):
