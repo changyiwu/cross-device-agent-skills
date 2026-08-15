@@ -21,13 +21,15 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 # ---- 逐行的文字規則 -------------------------------------------------------
+# 分隔符一律寫 [\\/]+ 而不是 [\\/]：JSON 與部分程式語言的字串會把反斜線跳脫成兩個，
+# 只允許一個分隔符的話，.mcp.json 那種跳脫過的 Windows 路徑會整批逃過檢查（實測踩過）。
 LINE_RULES = [
-    (re.compile(r"[A-Za-z]:[\\/]Users[\\/]\S"), "寫死本機使用者絕對路徑"),
-    (re.compile(r"[A-Za-z]:[\\/]我的雲端硬碟"), "寫死雲端硬碟絕對路徑"),
-    (re.compile(r"\.venv[\\/](Scripts|bin)[\\/]"), "寫死 venv 路徑（Scripts / bin 兩平台不同）"),
+    (re.compile(r"[A-Za-z]:[\\/]+Users[\\/]+\S"), "寫死本機使用者絕對路徑"),
+    (re.compile(r"[A-Za-z]:[\\/]+我的雲端硬碟"), "寫死雲端硬碟絕對路徑"),
+    (re.compile(r"\.venv[\\/]+(Scripts|bin)[\\/]+"), "寫死 venv 路徑（Scripts / bin 兩平台不同）"),
     # 上一條只抓得到「.venv 緊接其下一層」的字面。實測 voxcpm2 與 file-toolkit 都是把
     # venv 根目錄放進變數、再接下一層的直譯器路徑，整個逃過檢查——所以要獨立抓後半段。
-    (re.compile(r"[\\/'\"](Scripts)[\\/](python|pip)"), "寫死 Scripts\\python（mac 是 bin/python）"),
+    (re.compile(r"[\\/'\"]+(Scripts)[\\/]+(python|pip)"), "寫死直譯器子目錄（mac 是 bin/python）"),
     (re.compile(r"\$env:COMPUTERNAM[E]"), "用了 COMPUTERNAME（macOS 是空字串且不報錯）"),
     (re.compile(r"\$env:(LOCALAPPDATA|APPDATA|USERPROFILE|PROGRAMFILES|PROGRAMDATA|SYSTEMROOT)"),
      "用了 Windows 專屬環境變數（macOS 是 $null，Join-Path 會組出錯的路徑）"),
@@ -76,7 +78,7 @@ def code_lines(path: Path, text: str):
 
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "site-packages", "__pycache__",
              "dist", "build", "generated", "outputs", "output", "tmp", "scratch",
-             ".skill-install", "待刪除"}
+             ".skill-install", ".netlify", "待刪除"}   # .netlify 是部署工具產生的本機狀態
 
 SKIP_NAMES = {"package-lock.json", "poetry.lock"}
 
