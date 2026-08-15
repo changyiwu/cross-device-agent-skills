@@ -44,6 +44,11 @@ CODE_SUFFIXES = {".py", ".ps1", ".psm1", ".sh", ".js", ".mjs",
 
 FENCE = re.compile(r"^\s*(```|~~~)")
 
+# 行內豁免：這一行的平台專屬寫法是刻意的（最常見是「已經包在 if ($IsWindows) 裡」，
+# 而逐行規則看不到那層 guard）。用行內標記而不是整檔豁免，才不會連同一個檔案裡
+# 未來新增的真問題一起蓋掉。寫法：在該行加註解 `platform-ok: <理由>`。
+INLINE_OK = re.compile(r"platform-ok")
+
 
 def code_lines(path: Path, text: str):
     """產生 (行號, 內容)，但只給「會被執行的行」。
@@ -122,6 +127,9 @@ def scan_repo(root: Path):
 
         text = raw.decode("utf-8", errors="replace")
         for lineno, line in code_lines(path, text):
+            if INLINE_OK.search(line):
+                skipped += 1
+                continue
             for pattern, label in LINE_RULES:
                 if pattern.search(line):
                     findings.append((rel, lineno, label))
@@ -165,7 +173,7 @@ def main(argv):
     for label, count in sorted(by_label.items(), key=lambda kv: -kv[1]):
         print(f"  {count:4}  {label}")
     if total_skipped:
-        print(f"\n🔇 依 .platform-ok 跳過 {total_skipped} 個檔（刻意保留平台專屬寫法）")
+        print(f"\n🔇 豁免 {total_skipped} 處（.platform-ok 檔案 ＋ platform-ok 行內標記）")
     if clean:
         print(f"\n✅ 乾淨（{len(clean)}）：{'、'.join(clean)}")
 
