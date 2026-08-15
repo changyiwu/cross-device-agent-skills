@@ -92,7 +92,7 @@ git config --get core.precomposeunicode    # mac 上應為 true
 | 能力 | Windows | macOS | 處置 |
 |------|---------|-------|------|
 | Word 轉 PDF（`docx2pdf`） | ✅ COM | ✅ 需 Word for Mac | 同一個套件兩條路：Windows 走 COM、macOS 走 AppleScript。**兩邊都要求裝桌面版 Word**，沒有就明說缺前置 |
-| PowerPoint COM 截圖、`.doc` 讀取 | ✅ | ❌ 無對應 | 標 **Windows-only**，mac 上直接說「本機不支援」並停下 |
+| PowerPoint 逐頁匯出 PNG、Word 讀 `.doc` | ✅ COM | ⚠️ 能力有，但要自己寫 | **沒有 mac 對應的是 COM 這個介面，不是那個能力**——Office for Mac 有 AppleScript 字典，PowerPoint 可 `export` 成 PNG、Word 可開 `.doc` 另存。差別只在沒有現成套件把兩條路包起來（`docx2pdf` 有，所以它兩邊都能用）。在寫出 AppleScript 那條路之前，mac 上標為不可用並停下 |
 | 離線語音備援 | SAPI | `say` | 備援鏈末端換掉；前面的 Edge-TTS 兩層本來就跨平台 |
 | 瀏覽器 headless 截圖 | Edge | Chrome／Edge 皆可 | 偵測可用瀏覽器，不寫死執行檔路徑 |
 | Tesseract OCR | `C:\Program Files\Tesseract-OCR` | `brew --prefix tesseract` | 一律 `Get-Command tesseract`，不寫死安裝路徑 |
@@ -103,4 +103,6 @@ git config --get core.precomposeunicode    # mac 上應為 true
 
 1. **技能的〈環境需求〉要寫明平台支援**，不支援時的行為是「講清楚 ＋ 建議替代做法」，**不是靜默降級**——靜默降級會產出看起來正常、其實是次級品的結果，比直接失敗更難發現。
 2. **偵測工具用 `Get-Command`，不要寫死安裝路徑。** 兩個平台的安裝位置本來就不同，寫死等於保證有一邊會壞。
-3. ⚠️ **不要為了跨平台把 Office COM 換成 LibreOffice。** `share-report/agents.md` 已經驗證過：`soffice` 在 Windows 會因 `socket.AF_UNIX` 直接 `AttributeError`，而且它替換字型導致字寬不同，「文字有沒有溢出」會**判斷錯誤**——那是比不支援更糟的失敗方式。
+3. ⚠️ **不要為了跨平台把 Office COM 換成 LibreOffice。** `share-report/agents.md` 已經驗證過：`soffice` 在 Windows 會因 `socket.AF_UNIX` 直接 `AttributeError`，而且它替換字型導致字寬不同，「文字有沒有溢出」會**判斷錯誤**——那是比不支援更糟的失敗方式。**這個理由在 mac 上一樣成立**，所以 mac 的正解是 AppleScript 驅動 Office，不是改用 LibreOffice。
+
+4. **「沒有 mac 對應」要分清楚是「介面」還是「能力」。** COM 確實只有 Windows 有，但 Office for Mac 是 AppleScript 可驅動的——把「要另外寫一條路」講成「做不到」，會讓本來能做的事被永久劃掉。判斷方式：那個功能靠的是**應用程式**（Word／PowerPoint／Excel，mac 有）還是**Windows 專屬子系統**（WMI、登錄檔、Smart App Control，mac 沒有）。
