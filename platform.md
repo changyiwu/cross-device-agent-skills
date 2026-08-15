@@ -19,6 +19,15 @@
 
 跨專案互相引用時**不要寫絕對路徑**，改成相對路徑或往上找——這樣就永遠不需要知道雲端硬碟掛在哪。
 
+### 唯一的例外：全域技能
+
+**全域安裝的技能沒有 cwd 可以當錨點**——它從任何工作目錄都可能被觸發，而它要用的專案跟它自己的安裝位置沒有關係。這種技能只能當場解析絕對路徑，兩條規矩：
+
+1. **候選清單 ＋ 錨點驗證**，不可寫死。Windows 試 `$HOME` 與各磁碟機根下的雲端硬碟資料夾，macOS 掃 `~/Library/CloudStorage/GoogleDrive-*`（帳號名不定，一定要用萬用字元）。
+2. **用專案裡的某個檔案認人**（例如 `clone.py`），不能只 `Test-Path` 資料夾——mac 掛兩個 Google 帳號時會挑到錯的那顆而且毫無徵兆。
+
+實例見 `voxcpm2-voice-cloner/skills/voice-cloner/SKILL.md` 的步驟 1。
+
 寫程式碼時的三條配套規則：
 
 - 組路徑一律 `Join-Path`，不要出現字面 `\`
@@ -82,7 +91,8 @@ git config --get core.precomposeunicode    # mac 上應為 true
 
 | 能力 | Windows | macOS | 處置 |
 |------|---------|-------|------|
-| Word／PowerPoint COM 轉檔、截圖 | ✅ | ❌ 無對應 | 標 **Windows-only**，mac 上直接說「本機不支援」並停下 |
+| Word 轉 PDF（`docx2pdf`） | ✅ COM | ✅ 需 Word for Mac | 同一個套件兩條路：Windows 走 COM、macOS 走 AppleScript。**兩邊都要求裝桌面版 Word**，沒有就明說缺前置 |
+| PowerPoint COM 截圖、`.doc` 讀取 | ✅ | ❌ 無對應 | 標 **Windows-only**，mac 上直接說「本機不支援」並停下 |
 | 離線語音備援 | SAPI | `say` | 備援鏈末端換掉；前面的 Edge-TTS 兩層本來就跨平台 |
 | 瀏覽器 headless 截圖 | Edge | Chrome／Edge 皆可 | 偵測可用瀏覽器，不寫死執行檔路徑 |
 | Tesseract OCR | `C:\Program Files\Tesseract-OCR` | `brew --prefix tesseract` | 一律 `Get-Command tesseract`，不寫死安裝路徑 |

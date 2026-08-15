@@ -33,11 +33,13 @@ LINE_RULES = [
      "用了 Windows 專屬環境變數（macOS 是 $null，Join-Path 會組出錯的路徑）"),
 ]
 
+# .bat / .cmd 刻意不掃：cmd.exe 只有 Windows 有，那種檔案**整個就是 Windows 專屬**，
+# 在裡面挑「Windows 路徑」是定義上的誤報。macOS 的對應做法是別的入口，不是改那個檔。
 TEXT_SUFFIXES = {".md", ".py", ".ps1", ".psm1", ".yaml", ".yml", ".txt",
-                 ".json", ".js", ".mjs", ".sh", ".bat", ".cmd", ".toml"}
+                 ".json", ".js", ".mjs", ".sh", ".toml"}
 
 # 整份都是程式碼，逐行都檢查。
-CODE_SUFFIXES = {".py", ".ps1", ".psm1", ".sh", ".bat", ".cmd", ".js", ".mjs",
+CODE_SUFFIXES = {".py", ".ps1", ".psm1", ".sh", ".js", ".mjs",
                  ".json", ".yaml", ".yml", ".toml"}
 
 FENCE = re.compile(r"^\s*(```|~~~)")
@@ -74,9 +76,29 @@ SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "site-packages", "__pycach
 SKIP_NAMES = {"package-lock.json", "poetry.lock"}
 
 
+def read_allowlist(root: Path):
+    """讀 repo 根目錄的 .platform-ok：列出「刻意保留平台專屬寫法」的檔案。
+
+    典型是教學文件裡示範 Windows 指令、旁邊已註明 macOS 版本的那種。
+    這些檔案跳過逐行規則（BOM 仍然檢查），而且**跳掉幾個檔會印在總結裡**——
+    豁免必須看得見，否則就變成偷偷關掉檢查。
+    """
+    f = root / ".platform-ok"
+    if not f.is_file():
+        return set()
+    entries = set()
+    for line in f.read_text(encoding="utf-8").splitlines():
+        line = line.split("#", 1)[0].strip()
+        if line:
+            entries.add(line.replace("\\", "/"))
+    return entries
+
+
 def scan_repo(root: Path):
-    """回傳 (findings, notes)。findings 是 (相對路徑, 行號, 標籤)。"""
+    """回傳 (findings, notes, skipped)。findings 是 (相對路徑, 行號, 標籤)。"""
     findings, notes = [], []
+    allow = read_allowlist(root)
+    skipped = 0
 
     if (root / ".git").exists() and not (root / ".gitattributes").is_file():
         notes.append("缺 .gitattributes（換行約定沒定，autocrlf 的漏洞是開著的）")
@@ -94,13 +116,17 @@ def scan_repo(root: Path):
         if raw[:3] == b"\xef\xbb\xbf":
             findings.append((rel, 1, "檔案有 BOM（規則是一律無 BOM）"))
 
+        if rel.as_posix() in allow:
+            skipped += 1
+            continue
+
         text = raw.decode("utf-8", errors="replace")
         for lineno, line in code_lines(path, text):
             for pattern, label in LINE_RULES:
                 if pattern.search(line):
                     findings.append((rel, lineno, label))
 
-    return findings, notes
+    return findings, notes, skipped
 
 
 def main(argv):
@@ -112,6 +138,7 @@ def main(argv):
         targets = sorted(p for p in parent.iterdir() if p.is_dir() and (p / ".git").exists())
 
     total = 0
+    total_skipped = 0
     by_label = {}
     clean = []
 
@@ -119,7 +146,8 @@ def main(argv):
         if not root.is_dir():
             print(f"⚠️ 找不到：{root}")
             continue
-        findings, notes = scan_repo(root)
+        findings, notes, skipped = scan_repo(root)
+        total_skipped += skipped
         if not findings and not notes:
             clean.append(root.name)
             continue
@@ -136,6 +164,8 @@ def main(argv):
     print(f"掃描 {len(targets)} 個專案，命中 {total} 處")
     for label, count in sorted(by_label.items(), key=lambda kv: -kv[1]):
         print(f"  {count:4}  {label}")
+    if total_skipped:
+        print(f"\n🔇 依 .platform-ok 跳過 {total_skipped} 個檔（刻意保留平台專屬寫法）")
     if clean:
         print(f"\n✅ 乾淨（{len(clean)}）：{'、'.join(clean)}")
 
