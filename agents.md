@@ -18,6 +18,7 @@
 - [ ] 階段三：跨電腦實測（在另一台電腦「開工／收工」驗證流程；**現在也包含 macOS 實測**）
 - [ ] 階段四：依實測回饋調整技能內容
 - [x] 階段五：既有 30 個專案依「時效性」規則整理完畢（`agents.md` 移除 17 個 `## 最近進度`、30 個補上職責護欄；`handoff.md` 的 ⚠️ 從約 180 條分流到 33 條；缺漏的歷史先回填 Obsidian 才刪）
+- [x] 階段七：全 `agents/` 移除原作者頻道品牌署名（8 個 repo 已改）——`LICENSE`／`LICENSE-ASSETS.md` 與各 repo 一句原作者歸屬保留，`sensebar-agent-knowledge-vault-builder` 整個 repo 例外不動
 - [x] 階段六：跨平台改造（Windows ↔ macOS）——`platform.md` 定案（pwsh 7 唯一、路徑原則、能力分級）、`sync-skills` 與三技能改雙平台、`tools/check-platform.py` 建立可執行檢查、`file-toolkit`／`voxcpm2`／`agent-speak`／`share-report`／`clasp-gas-skill` 完成移植。**未在 macOS 實測過，那是階段三**
 
 ## 資料夾結構
@@ -71,6 +72,7 @@ cross-device-agent-skills/
 - 修改前先確認計畫，優先保留原有資料結構
 - **本資料夾是技能原始檔**。改動一律改這裡，改完說「同步技能」，委派全域技能 `sync-skills`（`skill-sync` 專案）覆蓋安裝副本。**同步的做法、驗證方式、注意事項都不要抄一份到本 repo**——只該有一份，在那個技能裡
 - **這台電腦的技能安裝來源永遠是本機這個資料夾，不是任何遠端 repo**。README 的〈安裝〉`git clone` 是寫給外部使用者的步驟，**不要**拿來當我方的安裝／更新途徑；要更新安裝副本就從本資料夾走 `sync-skills`
+- **`.mcp.json` 是本機專屬、已 gitignore，不要加回版控**。換到別台電腦（含 mac）要自己寫一份，不可直接沿用 Windows 這份
 - **不要把三技能的「步驟 0」加回來**（已決定不裝 chezmoi，dotfile 漂移檢查整個不做）
 - 寫任何要跨 Windows／macOS 的路徑或 PowerShell 前，先讀 `platform.md`。核心一條：**路徑一律相對 cwd 或往上找，不要解析「雲端硬碟根」**（例外只有全域技能，它沒有 cwd 可當錨點）；電腦名一律 `[Environment]::MachineName`，不可用 `$env:COMPUTERNAME`（macOS 是空字串且不報錯）
 - 改完跨平台相關的東西，跑 `python tools/check-platform.py` 驗一次（不帶參數＝掃所有同層專案）。**豁免有兩種**：整檔平台專屬用 repo 根目錄的 `.platform-ok`，檔案跨平台但個別行包在 `if ($IsWindows)` 裡用行內 `platform-ok:` 註解。豁免處數一定會印在總結裡——**看得見的豁免才叫豁免**
