@@ -7,8 +7,6 @@
 
 維護並改進 `project-init`／`startup`／`shutdown` 三個 Agent 技能，讓專案能在**任何電腦、任何 Agent** 之間無縫接續。三個口令搞定一切：「初始化專案」「開工」「收工」。技能會自動偵測工具鏈，做到本機能達成的最高層級（L1 本地／L2 GitHub／L3 Obsidian）。
 
-搭配內容：三師爸「AI Agent 基本功」EP06 懶人包。
-
 ## 關鍵時程
 
 <!-- 目前無固定時程 -->
@@ -82,4 +80,5 @@ cross-device-agent-skills/
 - **所有檔案一律 UTF-8 無 BOM**（`.md`／`.ps1`／`.py` 都是，沒有例外）。`SKILL.md` 帶 BOM 會讓 frontmatter 解析失敗、技能觸發不了。舊的「`.ps1` 必須含 BOM」已隨 5.1 退場而廢止，詳見 `platform.md`
 - PowerShell 一律 **pwsh 7**，不支援 Windows PowerShell 5.1；跨平台能力不強求對等，mac 上沒有的能力要明說、不靜默降級（見 `platform.md`）
 - **GDrive 上的 repo 一律以 git 為準，不以檔案內容或時間戳為準**。`git status` 出現 `MM` 但 `git diff HEAD` 為空時只是 LF/CRLF 差異，`git add --renormalize .` 可消除
+- **原作者的頻道品牌不要加回來**。2026-08-22 依使用者決定，全 `agents/` 移除「三師爸 Sense Bar」「@sensebar」等頻道推廣署名、YouTube 連結與影片集數綁定（本 repo 的 README 也不再自稱「EP06 懶人包」）。保留的只有兩種：各 repo `LICENSE`／`LICENSE-ASSETS.md` 的原始著作權行（MIT 保留義務，**永遠不可刪**），以及出處說明裡「原作者三師爸（`mathruffian-dot`）、本專案為改作版本」一句。`mathruffian-dot` 的上游 URL 一律保留——那是安裝指令與出處追溯要用的。例外：`sensebar-agent-knowledge-vault-builder` 整個 repo 不動，它的存在目的就是抓該頻道字幕。
 - PowerShell 裡 `'@{u}'` **一定要用單引號包起來**，裸的 `@{` 會被當成 hashtable 語法、直接噴解析錯誤
