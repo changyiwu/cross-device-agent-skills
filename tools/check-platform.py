@@ -13,6 +13,7 @@
 """
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -51,6 +52,54 @@ FENCE = re.compile(r"^\s*(```|~~~)")
 # 未來新增的真問題一起蓋掉。寫法：在該行加註解 `platform-ok: <理由>`。
 INLINE_OK = re.compile(r"platform-ok")
 
+# 區塊豁免：教學文件常寫成「Windows 一塊、macOS 一塊」，Windows 那塊的平台專屬寫法
+# 是刻意的。這種情形**不可以**要求作者在程式碼裡加行內 `platform-ok` 註解——那些區塊是
+# 給初學者整段複製貼上的，註解會被一起貼走，等於拿文件品質換 lint 乾淨。
+HEADING = re.compile(r"^#{1,6}\s")
+# 標題形式實測有 `**Windows（PowerShell）**`、`### Windows PowerShell`、`Windows 使用 PowerShell：`
+# 等十幾種，所以前綴一律放行，只要求該行以 Windows 起頭。
+WINDOWS_LABEL = re.compile(r"^[\s>*#\-\d.、|]*\**\s*Windows\b", re.I)
+MAC_LABEL = re.compile(r"\b(macOS|Mac OS|Linux)\b", re.I)
+
+
+def md_paired_windows_lines(lines):
+    """算出「已經配好對的 Windows 區塊」佔哪些行（1-based）。
+
+    **豁免條件不是「標了 Windows」，而是「標了 Windows 且同一節裡有 macOS 對照」。**
+    這條分野是本函式的全部重點：只看標題就豁免的話，會把「Windows 專屬、mac 版根本
+    還沒寫」的區塊一併藏掉——那正是這支工具要找出來的東西，藏掉等於讓工具說謊。
+
+    節以 Markdown 標題切開；整份沒有標題就算一節。
+    """
+    section = 0
+    in_fence = False
+    sec_of_line = []
+    mac_sections = set()
+    for line in lines:
+        if not in_fence and HEADING.match(line):
+            section += 1
+        sec_of_line.append(section)
+        if FENCE.match(line):
+            in_fence = not in_fence
+            continue
+        if not in_fence and MAC_LABEL.search(line):
+            mac_sections.add(section)
+
+    paired = set()
+    in_fence = False
+    start = 0
+    for i, line in enumerate(lines):
+        if not FENCE.match(line):
+            continue
+        if not in_fence:
+            in_fence, start = True, i
+            continue
+        in_fence = False
+        label = next((lines[j] for j in range(start - 1, -1, -1) if lines[j].strip()), "")
+        if WINDOWS_LABEL.match(label) and sec_of_line[start] in mac_sections:
+            paired.update(range(start + 2, i + 1))   # 圍籬內的行，換算成 1-based
+    return paired
+
 
 def code_lines(path: Path, text: str):
     """產生 (行號, 內容)，但只給「會被執行的行」。
@@ -63,18 +112,23 @@ def code_lines(path: Path, text: str):
     附帶一提：連這段說明都不能寫出被禁的字面，否則本檔自己就會命中。
 
     .md 只看 ``` 圍籬內的內容；程式碼檔整份都看。
+
+    第三個回傳值是「這一行落在已配對的 Windows 區塊裡」，交給呼叫端決定要不要靜音。
     """
+    lines = text.splitlines()
     if path.suffix.lower() in CODE_SUFFIXES:
-        yield from enumerate(text.splitlines(), start=1)
+        for lineno, line in enumerate(lines, start=1):
+            yield lineno, line, False
         return
 
+    paired = md_paired_windows_lines(lines)
     inside = False
-    for lineno, line in enumerate(text.splitlines(), start=1):
+    for lineno, line in enumerate(lines, start=1):
         if FENCE.match(line):
             inside = not inside
             continue
         if inside:
-            yield lineno, line
+            yield lineno, line, lineno in paired
 
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "site-packages", "__pycache__",
              "dist", "build", "generated", "outputs", "output", "tmp", "scratch",
@@ -105,11 +159,31 @@ def read_allowlist(root: Path):
     return entries
 
 
+def tracked_files(root: Path):
+    """回傳 git 追蹤中的檔案集合；不是 repo 或 git 不可用時回傳 None（＝全掃）。
+
+    依專案通則「GDrive 上的 repo 一律以 git 為準」：git 不追蹤的檔案不屬於這個 repo，
+    自然也不會是這個 repo 的跨平台缺陷。實測擋掉的正是 file-toolkit/_work 的拋棄式
+    檢查腳本，以及 .mcp.json／settings.local.json 這類本機專屬設定。
+
+    代價要講明白：**還沒 commit 的新檔案也會一起被跳過**，所以跳過幾個檔案要印在總結裡。
+    """
+    try:
+        out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"],
+                             capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    return {q for q in out.stdout.decode("utf-8", errors="replace").split("\0") if q}
+
+
 def scan_repo(root: Path):
-    """回傳 (findings, notes, skipped)。findings 是 (相對路徑, 行號, 標籤)。"""
+    """回傳 (findings, notes, files_allowed, muted, untracked)。findings 是 (相對路徑, 行號, 標籤)。"""
     findings, notes = [], []
     allow = read_allowlist(root)
-    skipped = 0
+    tracked = tracked_files(root)
+    files_allowed = muted = untracked = 0
 
     if (root / ".git").exists() and not (root / ".gitattributes").is_file():
         notes.append("缺 .gitattributes（換行約定沒定，autocrlf 的漏洞是開著的）")
@@ -123,8 +197,12 @@ def scan_repo(root: Path):
         if path.suffix.lower() not in TEXT_SUFFIXES:
             continue
 
+        if tracked is not None and rel.as_posix() not in tracked:
+            untracked += 1
+            continue
+
         if rel.as_posix() in allow:
-            skipped += 1
+            files_allowed += 1
             continue
 
         raw = path.read_bytes()
@@ -132,15 +210,18 @@ def scan_repo(root: Path):
             findings.append((rel, 1, "檔案有 BOM（規則是一律無 BOM）"))
 
         text = raw.decode("utf-8", errors="replace")
-        for lineno, line in code_lines(path, text):
-            if INLINE_OK.search(line):
-                skipped += 1
-                continue
+        for lineno, line, in_paired_block in code_lines(path, text):
+            # 先確定這行真的會命中才算「靜音一處」——否則一個十行的 Windows 區塊會被記成
+            # 豁免十處，把數字灌水。豁免要看得見，但也要是真的數字。
+            silent = in_paired_block or bool(INLINE_OK.search(line))
             for pattern, label in LINE_RULES:
                 if pattern.search(line):
-                    findings.append((rel, lineno, label))
+                    if silent:
+                        muted += 1
+                    else:
+                        findings.append((rel, lineno, label))
 
-    return findings, notes, skipped
+    return findings, notes, files_allowed, muted, untracked
 
 
 def main(argv):
@@ -152,7 +233,7 @@ def main(argv):
         targets = sorted(p for p in parent.iterdir() if p.is_dir() and (p / ".git").exists())
 
     total = 0
-    total_skipped = 0
+    sum_allowed = sum_muted = sum_untracked = 0
     by_label = {}
     clean = []
 
@@ -160,8 +241,10 @@ def main(argv):
         if not root.is_dir():
             print(f"⚠️ 找不到：{root}")
             continue
-        findings, notes, skipped = scan_repo(root)
-        total_skipped += skipped
+        findings, notes, files_allowed, muted, untracked = scan_repo(root)
+        sum_allowed += files_allowed
+        sum_muted += muted
+        sum_untracked += untracked
         if not findings and not notes:
             clean.append(root.name)
             continue
@@ -178,8 +261,13 @@ def main(argv):
     print(f"掃描 {len(targets)} 個專案，命中 {total} 處")
     for label, count in sorted(by_label.items(), key=lambda kv: -kv[1]):
         print(f"  {count:4}  {label}")
-    if total_skipped:
-        print(f"\n🔇 豁免 {total_skipped} 處（.platform-ok 檔案 ＋ platform-ok 行內標記）")
+    # 三種豁免的單位不同（檔案／命中／檔案），混成一個數字就看不出被蓋掉的是什麼，分開報。
+    if sum_allowed:
+        print(f"\n🔇 整檔豁免 {sum_allowed} 個檔案（.platform-ok）")
+    if sum_muted:
+        print(f"🔇 靜音 {sum_muted} 處命中（platform-ok 行內標記 ＋ 已配對的 Windows 區塊）")
+    if sum_untracked:
+        print(f"🔇 跳過 {sum_untracked} 個未進版控的檔案（git ls-files 之外）")
     if clean:
         print(f"\n✅ 乾淨（{len(clean)}）：{'、'.join(clean)}")
 
