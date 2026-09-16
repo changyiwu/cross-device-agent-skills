@@ -60,21 +60,27 @@ HEADING = re.compile(r"^#{1,6}\s")
 # 等十幾種，所以前綴一律放行，只要求該行以 Windows 起頭。
 WINDOWS_LABEL = re.compile(r"^[\s>*#\-\d.、|]*\**\s*Windows\b", re.I)
 MAC_LABEL = re.compile(r"\b(macOS|Mac OS|Linux)\b", re.I)
+# 上面那條是「這一節有沒有提到 mac」的全行搜尋；這條是「這個區塊標題是不是 mac」。
+MACOS_LABEL = re.compile(r"^[\s>*#\-\d.、|]*\**\s*(macOS|Mac OS|Linux)\b", re.I)
 
 
-def md_paired_windows_lines(lines):
-    """算出「已經配好對的 Windows 區塊」佔哪些行（1-based）。
+def md_paired_platform_lines(lines):
+    """算出「已經配好對的平台區塊」佔哪些行（1-based）。
 
-    **豁免條件不是「標了 Windows」，而是「標了 Windows 且同一節裡有 macOS 對照」。**
+    **豁免條件不是「標了平台」，而是「標了平台且同一節裡兩個平台都在」。**
     這條分野是本函式的全部重點：只看標題就豁免的話，會把「Windows 專屬、mac 版根本
     還沒寫」的區塊一併藏掉——那正是這支工具要找出來的東西，藏掉等於讓工具說謊。
+
+    兩邊都要豁免，不是只豁免 Windows：macOS 區塊寫 venv 底下 bin 那層的直譯器是正確的，
+    但那同樣會命中「venv 路徑」規則。只放行一邊的話，補 mac 版反而製造新的誤報
+    （實測就是這樣發現的）。
 
     節以 Markdown 標題切開；整份沒有標題就算一節。
     """
     section = 0
     in_fence = False
     sec_of_line = []
-    mac_sections = set()
+    mac_sections, win_sections = set(), set()
     for line in lines:
         if not in_fence and HEADING.match(line):
             section += 1
@@ -82,8 +88,13 @@ def md_paired_windows_lines(lines):
         if FENCE.match(line):
             in_fence = not in_fence
             continue
-        if not in_fence and MAC_LABEL.search(line):
+        if in_fence:
+            continue
+        if MAC_LABEL.search(line):
             mac_sections.add(section)
+        if WINDOWS_LABEL.match(line):
+            win_sections.add(section)
+    paired_sections = mac_sections & win_sections
 
     paired = set()
     in_fence = False
@@ -96,7 +107,8 @@ def md_paired_windows_lines(lines):
             continue
         in_fence = False
         label = next((lines[j] for j in range(start - 1, -1, -1) if lines[j].strip()), "")
-        if WINDOWS_LABEL.match(label) and sec_of_line[start] in mac_sections:
+        labelled = WINDOWS_LABEL.match(label) or MACOS_LABEL.match(label)
+        if labelled and sec_of_line[start] in paired_sections:
             paired.update(range(start + 2, i + 1))   # 圍籬內的行，換算成 1-based
     return paired
 
@@ -121,7 +133,7 @@ def code_lines(path: Path, text: str):
             yield lineno, line, False
         return
 
-    paired = md_paired_windows_lines(lines)
+    paired = md_paired_platform_lines(lines)
     inside = False
     for lineno, line in enumerate(lines, start=1):
         if FENCE.match(line):
@@ -265,7 +277,7 @@ def main(argv):
     if sum_allowed:
         print(f"\n🔇 整檔豁免 {sum_allowed} 個檔案（.platform-ok）")
     if sum_muted:
-        print(f"🔇 靜音 {sum_muted} 處命中（platform-ok 行內標記 ＋ 已配對的 Windows 區塊）")
+        print(f"🔇 靜音 {sum_muted} 處命中（platform-ok 行內標記 ＋ 已配對的平台區塊）")
     if sum_untracked:
         print(f"🔇 跳過 {sum_untracked} 個未進版控的檔案（git ls-files 之外）")
     if clean:

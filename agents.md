@@ -75,8 +75,8 @@ cross-device-agent-skills/
 - **`.mcp.json` 是本機專屬、已 gitignore，不要加回版控**。換到別台電腦（含 mac）要自己寫一份，不可直接沿用 Windows 這份
 - **不要把三技能的「步驟 0」加回來**（已決定不裝 chezmoi，dotfile 漂移檢查整個不做）
 - 寫任何要跨 Windows／macOS 的路徑或 PowerShell 前，先讀 `platform.md`。核心一條：**路徑一律相對 cwd 或往上找，不要解析「雲端硬碟根」**（例外只有全域技能，它沒有 cwd 可當錨點）；電腦名一律 `[Environment]::MachineName`，不可用 `$env:COMPUTERNAME`（macOS 是空字串且不報錯）
-- 改完跨平台相關的東西，跑 `python tools/check-platform.py` 驗一次（不帶參數＝掃所有同層專案）。**只掃 git 追蹤中的檔案**——本機專屬的 `_work/`、`.mcp.json`、`settings.local.json` 因此自動排除，代價是還沒 commit 的新檔也掃不到。**豁免有三種**：①整檔平台專屬用 repo 根目錄的 `.platform-ok`；②檔案跨平台但個別行包在 `if ($IsWindows)` 裡，用行內 `platform-ok:` 註解；③教學文件裡的 Windows 程式碼區塊，**標題以 Windows 開頭且同一節有 macOS 對照**時自動靜音（不可用行內註解代替——那些區塊是給初學者整段複製貼上的，註解會被一起貼走）。三種豁免的數量分開印在總結裡——**看得見的豁免才叫豁免**
-- 自動靜音**只認明確標了平台的區塊**。文件裡「Windows 版在上、macOS 版在下但上面那塊沒標題」的寫法仍會命中，該補的是標題（例如 `**Windows（PowerShell）**`），不是去放寬工具
+- 改完跨平台相關的東西，跑 `python tools/check-platform.py` 驗一次（不帶參數＝掃所有同層專案）。**只掃 git 追蹤中的檔案**——本機專屬的 `_work/`、`.mcp.json`、`settings.local.json` 因此自動排除，代價是還沒 commit 的新檔也掃不到。**豁免有三種**：①整檔平台專屬用 repo 根目錄的 `.platform-ok`；②檔案跨平台但個別行包在 `if ($IsWindows)` 裡，用行內 `platform-ok:` 註解；③教學文件裡標了平台的程式碼區塊，**同一節裡 Windows 與 macOS 兩邊都在**時自動靜音，兩邊對稱（只放行 Windows 的話，補出來的 macOS 版寫 `.venv/bin/python` 反而製造新誤報）。不可用行內註解代替——那些區塊是給初學者整段複製貼上的，註解會被一起貼走。三種豁免的數量分開印在總結裡——**看得見的豁免才叫豁免**
+- 自動靜音**只認明確標了平台的區塊**。文件裡「Windows 版在上、macOS 版在下但上面那塊沒標題」的寫法仍會命中，該補的是標題（例如 `**Windows（PowerShell）**`），不是去放寬工具。標題要**自成一行**——圍籬前最近的非空行若是說明的續行，就配不到對
 - **「一律無 BOM」有一個例外：公開懶人包裡給初學者用 `powershell.exe`（5.1）跑的 `.ps1`**。初學者的 Windows 預設沒有 pwsh 7，而 5.1 會把無 BOM 的 UTF-8 當 ANSI 讀、中文全爛。那些檔案的 BOM 是必要的，已列進各自的 `.platform-ok`，不要清
 - **30 個公開 repo 的 git 歷史怎麼處理，尚未決定**：舊 commit 裡仍留著當年的 `handoff.md`。要清得重寫歷史＋強制推送 30 個 repo，屬不可逆操作。**在使用者明確決定之前，不要當成待辦逕行處理**
 - 同步完的新版**要下一個 session 才生效**：技能副本是進 session 時載入的，同一個對話裡同步完仍然跑舊版。**重開 Claude Code 也算新 session**（判斷方式：比對副本 mtime 與 `Get-Process claude` 的 `StartTime`，啟動晚於寫入才是新版）
