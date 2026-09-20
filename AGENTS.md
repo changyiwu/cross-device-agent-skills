@@ -20,6 +20,7 @@
 - [x] 階段五：既有 30 個專案依「時效性」規則整理完畢（`AGENTS.md` 移除 17 個 `## 最近進度`、30 個補上職責護欄；`handoff.md` 的 ⚠️ 從約 180 條分流到 33 條；缺漏的歷史先回填 Obsidian 才刪）
 - [x] 階段七：全 `agents/` 移除原作者頻道品牌署名（8 個 repo 已改）——`LICENSE`／`LICENSE-ASSETS.md` 與各 repo 一句原作者歸屬保留，`sensebar-agent-knowledge-vault-builder` 整個 repo 例外不動
 - [x] 階段六：跨平台改造（Windows ↔ macOS）——`platform.md` 定案（pwsh 7 唯一、路徑原則、能力分級）、`sync-skills` 與三技能改雙平台、`tools/check-platform.py` 建立可執行檢查、`file-toolkit`／`voxcpm2`／`agent-speak`／`share-report`／`clasp-gas-skill` 完成移植。**未在 macOS 實測過，那是階段三**
+- [x] 階段八：藍圖檔名統一為大寫 `AGENTS.md`（36 個 repo 改名、384 處引用更新，3 個原本就是大寫）——Claude Code v2.1.277 起原生支援 `AGENTS.md`，但經評估**保留 `CLAUDE.md` 橋接檔**，理由見〈工作約定〉
 
 ## 資料夾結構
 
