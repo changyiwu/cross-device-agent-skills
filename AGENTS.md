@@ -16,7 +16,7 @@
 - [x] 階段一：三技能成形（project-init / startup / shutdown）＋ README 說明
 - [x] 階段二：本專案自身完成初始化（AGENTS.md ＋ handoff.md ＋ git ＋ Obsidian）
 - [ ] 階段三：跨電腦實測（在另一台電腦「開工／收工」驗證流程；**現在也包含 macOS 實測**）
-- [ ] 階段四：依實測回饋調整技能內容
+- [ ] 階段四：依實測回饋調整技能內容——**已有第一批（2026-09-20，Windows 端就測得出來的部分）**：`startup` 加藍圖檔前置檢查、`shutdown` 加刪除閘門，兩者都來自雲端硬碟同步殘留事件；其餘仍待階段三的 macOS 回饋
 - [x] 階段五：既有 30 個專案依「時效性」規則整理完畢（`AGENTS.md` 移除 17 個 `## 最近進度`、30 個補上職責護欄；`handoff.md` 的 ⚠️ 從約 180 條分流到 33 條；缺漏的歷史先回填 Obsidian 才刪）
 - [x] 階段七：全 `agents/` 移除原作者頻道品牌署名（8 個 repo 已改）——`LICENSE`／`LICENSE-ASSETS.md` 與各 repo 一句原作者歸屬保留，`sensebar-agent-knowledge-vault-builder` 整個 repo 例外不動
 - [x] 階段六：跨平台改造（Windows ↔ macOS）——`platform.md` 定案（pwsh 7 唯一、路徑原則、能力分級）、`sync-skills` 與三技能改雙平台、`tools/check-platform.py` 建立可執行檢查、`file-toolkit`／`voxcpm2`／`agent-speak`／`share-report`／`clasp-gas-skill` 完成移植。**未在 macOS 實測過，那是階段三**
@@ -80,12 +80,14 @@ cross-device-agent-skills/
 - 自動靜音**只認明確標了平台的區塊**。文件裡「Windows 版在上、macOS 版在下但上面那塊沒標題」的寫法仍會命中，該補的是標題（例如 `**Windows（PowerShell）**`），不是去放寬工具。標題要**自成一行**——圍籬前最近的非空行若是說明的續行，就配不到對
 - **「一律無 BOM」有一個例外：公開懶人包裡給初學者用 `powershell.exe`（5.1）跑的 `.ps1`**。初學者的 Windows 預設沒有 pwsh 7，而 5.1 會把無 BOM 的 UTF-8 當 ANSI 讀、中文全爛。那些檔案的 BOM 是必要的，已列進各自的 `.platform-ok`，不要清
 - **30 個公開 repo 的 git 歷史怎麼處理，尚未決定**：舊 commit 裡仍留著當年的 `handoff.md`。要清得重寫歷史＋強制推送 30 個 repo，屬不可逆操作。**在使用者明確決定之前，不要當成待辦逕行處理**
-- **Claude Code 的顯式 `Skill` 呼叫是即時讀磁碟的**：2026-09-20 實測，同步後在**同一個對話**裡呼叫 `shutdown`，載到的就是剛寫入的新版（副本寫入 12:35:07，而最晚的 claude 程序啟動於 12:33:18——已排除「重開才生效」這個 2026-08-03 誤判過一次的解釋）。**但這只驗證了 Claude Code desktop 的顯式呼叫**；隱性觸發、以及 Codex／OpenCode／Antigravity 三家仍未驗證，那幾種情況保守假設要新 session。判斷方式仍是比對副本 mtime 與 `Get-Process claude` 的 `StartTime`
+- **改完技能要開新對話才生效**——技能**本體**在 session 開始時就被快照，同步後在同一個對話裡呼叫，載到的仍是舊版。2026-09-20 直接觀察：同一對話內同步完再顯式呼叫 `shutdown`，載入內容是舊的，而磁碟上安裝副本的 sha256 已與原始檔相同。**技能「描述」清單會即時刷新、「本體」不會**——描述變新了不代表本體也新了，別被它騙過去。判斷一律用**直接法**：比對載入內容裡的特徵字串與磁碟檔案 hash。❌ **不可**再用「副本 mtime vs `Get-Process claude` 的 `StartTime`」下結論——那是間接推論，只排除得了「程序重開」，證明不了載到的是新內容；同一天稍早正是用它寫出「即時讀磁碟」的錯誤結論（2026-08-03 也錯過一次，這條規則已來回錯兩次）。Codex／OpenCode／Antigravity 三家與隱性觸發同樣未驗證，一律比照保守假設
 - **所有檔案一律 UTF-8 無 BOM**（`.md`／`.ps1`／`.py` 都是，沒有例外）。`SKILL.md` 帶 BOM 會讓 frontmatter 解析失敗、技能觸發不了。舊的「`.ps1` 必須含 BOM」已隨 5.1 退場而廢止，詳見 `platform.md`
+- **`~/.claude/CLAUDE.md` 這類全域設定不在雲端硬碟裡，不會自動跟著到新電腦**。每台新機器都要手動補（vault 路徑解析那段是必補項）。雲端硬碟同步的只有 `agents/` 底下的專案，家目錄的 dotfile 不在其中
 - PowerShell 一律 **pwsh 7**，不支援 Windows PowerShell 5.1；跨平台能力不強求對等，mac 上沒有的能力要明說、不靜默降級（見 `platform.md`）
 - **GDrive 上的 repo 一律以 git 為準，不以檔案內容或時間戳為準**。`git status` 出現 `MM` 但 `git diff HEAD` 為空時只是 LF/CRLF 差異，`git add --renormalize .` 可消除
 - **原作者的頻道品牌不要加回來**。2026-08-22 依使用者決定，全 `agents/` 移除「三師爸 Sense Bar」「@sensebar」等頻道推廣署名、YouTube 連結與影片集數綁定（本 repo 的 README 也不再自稱「EP06 懶人包」）。保留的只有兩種：各 repo `LICENSE`／`LICENSE-ASSETS.md` 的原始著作權行（MIT 保留義務，**永遠不可刪**），以及出處說明裡「原作者三師爸（`mathruffian-dot`）、本專案為改作版本」一句。`mathruffian-dot` 的上游 URL 一律保留——那是安裝指令與出處追溯要用的。例外：`sensebar-agent-knowledge-vault-builder` 整個 repo 不動，它的存在目的就是抓該頻道字幕。
 - PowerShell 裡 `'@{u}'` **一定要用單引號包起來**，裸的 `@{` 會被當成 hashtable 語法、直接噴解析錯誤
 - **跨 Agent 藍圖的檔名一律是大寫 `AGENTS.md`**（開放標準的正式拼法，也是 Claude Code 原生辨識的拼法）。2026-09-20 全 `agents/` 36 個 repo 由舊的小寫 `agents.md` 統一改名。Windows 與 macOS 的檔案系統大小寫不敏感，**在這兩台永遠測不出檔名拼錯**，所以命名靠約定顧、不要靠實測；改名一律 `git mv -f`（`core.ignorecase=true` 時不加 `-f` git 看不到改名）
+- **雲端硬碟同步的 repo 禁止純大小寫改名**。Google 雲端硬碟套用不了這種改名（兩端檔案系統都大小寫不敏感），另一台收到的會是「舊檔被刪＋新檔落成 `AGENTS (1).md`」——藍圖在磁碟上消失，而 `CLAUDE.md` 的 `@AGENTS.md` import **靜默失敗**（不報錯，只是整份藍圖沒載到）。2026-09-20 階段八改名後，36 個 repo 在第二台全中，沒中的 3 個正是原本就大寫、沒改名的。必須改大小寫時走**兩段式**：`X.md → X-tmp.md`，等雲端同步完成再 `X-tmp.md → NEWNAME.md`。已中招的修法是 `git checkout -- AGENTS.md` 還原後刪掉 `(1)` 副本，**刪前一定先 `cmp` 確認副本與 `git show HEAD:AGENTS.md` 逐位元組相同**；不同就停下來問，不要自己選一份
 - **`CLAUDE.md` 橋接檔不要刪**。Claude Code 已能原生讀 `AGENTS.md`，但那是**二選一**不是兩份都讀：有 `CLAUDE.md` 就完全不碰 `AGENTS.md`。留著 import 不會讀兩次，且有四種場合原生讀不到（Amazon Bedrock、telemetry 停用、`disableAllHooks`／`allowManagedHooksOnly`、安裝或升級後的第一個 session）——跨電腦跨 Agent 正是本專案的承諾，不能賭。各專案的 `CLAUDE.md` 除了 import 還放著 Claude 專屬規範，更不能刪
 - 驗證橋接生效的方式**依載入途徑而不同**：走 `@AGENTS.md` import 就看 `/context` 的 **Memory files** 有沒有列到 `CLAUDE.md`；若哪天改走原生讀取，`AGENTS.md` **不會**出現在 `/memory` 與 `/context` 的清單裡，要改看 session 開頭的 `AGENTS.md loaded:` 那行——用錯方式會得到假陰性
