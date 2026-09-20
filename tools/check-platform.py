@@ -34,6 +34,17 @@ LINE_RULES = [
     (re.compile(r"\$env:COMPUTERNAM[E]"), "用了 COMPUTERNAME（macOS 是空字串且不報錯）"),
     (re.compile(r"\$env:(LOCALAPPDATA|APPDATA|USERPROFILE|PROGRAMFILES|PROGRAMDATA|SYSTEMROOT)"),
      "用了 Windows 專屬環境變數（macOS 是 $null，Join-Path 會組出錯的路徑）"),
+    # 上面幾條都要求路徑開頭有磁碟機代號，所以「變數 ＋ 反斜線」這種組法整個看不見。
+    # 這是最會咬人的一類：在 macOS 上反斜線是合法檔名字元，不是分隔符，於是
+    # HOME 變數接反斜線會組出一個「名字裡有反斜線」的單層路徑，Test-Path 靜默回 False，
+    # 技能只會說「找不到腳本」——又是一個不報錯的失敗。實測 7 個 repo 中鏢。
+    #
+    # 判別「路徑」與「正則跳脫」：反斜線後面要接兩個路徑字元（第一個可以是點，
+    # 因為 .claude 這類隱藏目錄很常見）。正則裡的跳脫幾乎都是單字元類別，
+    # 後面接的是引號、星號或大括號，所以自然被排除。已知的代價是
+    # 「反斜線後面緊接角括號佔位符」那種寫法抓不到（保守漏報，不是誤報）。
+    (re.compile(r"\$[A-Za-z_][A-Za-z0-9_:]*\\[\w.]\w"),
+     "用反斜線組路徑（macOS 的分隔符是斜線，反斜線會變成檔名的一部分）"),
 ]
 
 # .bat / .cmd 刻意不掃：cmd.exe 只有 Windows 有，那種檔案**整個就是 Windows 專屬**，
