@@ -57,6 +57,33 @@ CODE_SUFFIXES = {".py", ".ps1", ".psm1", ".sh", ".js", ".mjs",
                  ".json", ".yaml", ".yml", ".toml"}
 
 FENCE = re.compile(r"^\s*(```|~~~)")
+# 圍籬的語言標記。上面那條只判「是不是圍籬」，這條另外把語言抓出來，
+# 給下面「只在 PowerShell 語境成立」的規則用。
+FENCE_LANG = re.compile(r"^\s*(?:```|~~~)\s*([A-Za-z0-9_+-]*)")
+PS_LANGS = {"powershell", "pwsh", "ps1", "ps"}
+
+# ---- 只在 PowerShell 語境成立的規則 ---------------------------------------
+# 為什麼要分語境：**兩種語言對反斜線的語意相反**。PowerShell 的跳脫字元是反引號，
+# 所以字串裡的反斜線幾乎必然是路徑分隔符；Python 剛好相反（跳脫與正則滿天飛）。
+# 混在一起掃必然誤報——實測「任何語言都掃」的版本會把 re.split(r"\r?\n\r?\n") 與
+# JSON 裡的 "2 天前是\n4×(-2)" 全算成路徑。
+#
+# 上面那條 LINE_RULES 的路徑規則都要求開頭有磁碟機代號或 `$變數`，所以
+# 'skills\clasp-setup' 這種「整串都是字面、前面沒有變數」的寫法完全不在視野內。
+# 2026-09-20 補這條時一次掃出 12 個 repo；在那之前它讓 youtube-publish-kit 的
+# SKILL.md 在只修好一半的狀態下顯示 0 命中。
+PS_LINE_RULES = [
+    (re.compile(r"\\[\w.][\w.-]"),
+     "用反斜線組路徑（macOS 的分隔符是斜線，反斜線會變成檔名的一部分）"),
+]
+# PowerShell 裡唯一會把反斜線當正則用的場合：字串被餵給這些運算子／型別。
+PS_REGEX_OPS = re.compile(
+    r"-(?:c|i)?(?:not)?(?:match|replace|split)\b|\[regex\]|Select-String|"
+    r"RegularExpressions", re.I)
+# 補上一條：正則被存進變數或陣列時，運算子不在同一行。字元類別與量詞是它的指紋。
+# 實測只濾掉 2 行（rdq-skill 的 'references/[A-Za-z0-9._/-]+\.md' 與 sync-skills
+# 的 $skip），沒有誤殺任何真命中。
+PS_REGEX_SHAPE = re.compile(r"\[[^\]\n]{3,}\]|\{\d+(?:,\d*)?\}")
 
 # 行內豁免：這一行的平台專屬寫法是刻意的（最常見是「已經包在 if ($IsWindows) 裡」，
 # 而逐行規則看不到那層 guard）。用行內標記而不是整檔豁免，才不會連同一個檔案裡
@@ -137,21 +164,31 @@ def code_lines(path: Path, text: str):
     .md 只看 ``` 圍籬內的內容；程式碼檔整份都看。
 
     第三個回傳值是「這一行落在已配對的 Windows 區塊裡」，交給呼叫端決定要不要靜音。
+    第四個是「這一行是不是 PowerShell」，給 PS_LINE_RULES 用——.md 靠圍籬的語言標記，
+    程式碼檔靠副檔名。標記不寫語言的圍籬一律不算 PowerShell（寧可漏，不要誤報）。
     """
     lines = text.splitlines()
-    if path.suffix.lower() in CODE_SUFFIXES:
+    suffix = path.suffix.lower()
+    if suffix in CODE_SUFFIXES:
+        is_ps = suffix in {".ps1", ".psm1"}
         for lineno, line in enumerate(lines, start=1):
-            yield lineno, line, False
+            yield lineno, line, False, is_ps
         return
 
     paired = md_paired_platform_lines(lines)
     inside = False
+    lang = ""
     for lineno, line in enumerate(lines, start=1):
         if FENCE.match(line):
+            if not inside:
+                m = FENCE_LANG.match(line)
+                lang = (m.group(1) or "").lower() if m else ""
+            else:
+                lang = ""
             inside = not inside
             continue
         if inside:
-            yield lineno, line, lineno in paired
+            yield lineno, line, lineno in paired, lang in PS_LANGS
 
 SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "site-packages", "__pycache__",
              "dist", "build", "generated", "outputs", "output", "tmp", "scratch",
@@ -233,11 +270,27 @@ def scan_repo(root: Path):
             findings.append((rel, 1, "檔案有 BOM（規則是一律無 BOM）"))
 
         text = raw.decode("utf-8", errors="replace")
-        for lineno, line, in_paired_block in code_lines(path, text):
+        for lineno, line, in_paired_block, is_ps in code_lines(path, text):
             # 先確定這行真的會命中才算「靜音一處」——否則一個十行的 Windows 區塊會被記成
             # 豁免十處，把數字灌水。豁免要看得見，但也要是真的數字。
             silent = in_paired_block or bool(INLINE_OK.search(line))
+            hit_here = False
             for pattern, label in LINE_RULES:
+                if pattern.search(line):
+                    hit_here = True
+                    if silent:
+                        muted += 1
+                    else:
+                        findings.append((rel, lineno, label))
+
+            # PowerShell 專屬規則。已經被上面抓到的行就不再報一次——那條路徑規則
+            # 是這條的子集（`$變數\檔名` 一定也是「反斜線接路徑字元」），同一行報兩次
+            # 只是把數字灌水，對修的人沒有多給任何資訊。
+            if not is_ps or hit_here:
+                continue
+            if PS_REGEX_OPS.search(line) or PS_REGEX_SHAPE.search(line):
+                continue
+            for pattern, label in PS_LINE_RULES:
                 if pattern.search(line):
                     if silent:
                         muted += 1
