@@ -80,7 +80,7 @@ cross-device-agent-skills/
 - 自動靜音**只認明確標了平台的區塊**。文件裡「Windows 版在上、macOS 版在下但上面那塊沒標題」的寫法仍會命中，該補的是標題（例如 `**Windows（PowerShell）**`），不是去放寬工具。標題要**自成一行**——圍籬前最近的非空行若是說明的續行，就配不到對
 - **「一律無 BOM」有一個例外：公開懶人包裡給初學者用 `powershell.exe`（5.1）跑的 `.ps1`**。初學者的 Windows 預設沒有 pwsh 7，而 5.1 會把無 BOM 的 UTF-8 當 ANSI 讀、中文全爛。那些檔案的 BOM 是必要的，已列進各自的 `.platform-ok`，不要清
 - **30 個公開 repo 的 git 歷史怎麼處理，尚未決定**：舊 commit 裡仍留著當年的 `handoff.md`。要清得重寫歷史＋強制推送 30 個 repo，屬不可逆操作。**在使用者明確決定之前，不要當成待辦逕行處理**
-- 同步完的新版**要下一個 session 才生效**：技能副本是進 session 時載入的，同一個對話裡同步完仍然跑舊版。**重開 Claude Code 也算新 session**（判斷方式：比對副本 mtime 與 `Get-Process claude` 的 `StartTime`，啟動晚於寫入才是新版）
+- **Claude Code 的顯式 `Skill` 呼叫是即時讀磁碟的**：2026-09-20 實測，同步後在**同一個對話**裡呼叫 `shutdown`，載到的就是剛寫入的新版（副本寫入 12:35:07，而最晚的 claude 程序啟動於 12:33:18——已排除「重開才生效」這個 2026-08-03 誤判過一次的解釋）。**但這只驗證了 Claude Code desktop 的顯式呼叫**；隱性觸發、以及 Codex／OpenCode／Antigravity 三家仍未驗證，那幾種情況保守假設要新 session。判斷方式仍是比對副本 mtime 與 `Get-Process claude` 的 `StartTime`
 - **所有檔案一律 UTF-8 無 BOM**（`.md`／`.ps1`／`.py` 都是，沒有例外）。`SKILL.md` 帶 BOM 會讓 frontmatter 解析失敗、技能觸發不了。舊的「`.ps1` 必須含 BOM」已隨 5.1 退場而廢止，詳見 `platform.md`
 - PowerShell 一律 **pwsh 7**，不支援 Windows PowerShell 5.1；跨平台能力不強求對等，mac 上沒有的能力要明說、不靜默降級（見 `platform.md`）
 - **GDrive 上的 repo 一律以 git 為準，不以檔案內容或時間戳為準**。`git status` 出現 `MM` 但 `git diff HEAD` 為空時只是 LF/CRLF 差異，`git add --renormalize .` 可消除
