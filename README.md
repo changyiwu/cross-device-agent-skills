@@ -7,7 +7,7 @@
 
 | 技能 | 口令 | 做什麼 |
 |------|------|--------|
-| `project-init` | 「初始化專案」 | 為專案建立藍圖（agents.md）＋交接檔（handoff.md）＋Claude Code 橋接檔（CLAUDE.md），有 GitHub 就順便建 repo（會問你要公開還是私有），有 Obsidian 就建詳細筆記 |
+| `project-init` | 「初始化專案」 | 為專案建立藍圖（AGENTS.md）＋交接檔（handoff.md）＋Claude Code 橋接檔（CLAUDE.md），有 GitHub 就順便建 repo（會問你要公開還是私有），有 Obsidian 就建詳細筆記 |
 | `startup` | 「開工」 | 讀藍圖＋交接檔，回報上次做到哪（含「上次在哪台電腦收工」）、git 狀態、建議下一步 |
 | `shutdown` | 「收工」 | 更新藍圖進度、改寫交接檔、git commit + push、詳細紀錄寫進 Obsidian |
 
@@ -17,13 +17,13 @@
 
 | 層級 | 需要安裝 | 你會得到 |
 |------|---------|---------|
-| **L1 本地** | 什麼都不用（建議專案放 Google 雲端硬碟資料夾） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接），跨電腦靠雲端硬碟同步 |
+| **L1 本地** | 什麼都不用（建議專案放 Google 雲端硬碟資料夾） | `AGENTS.md`＋`handoff.md`＋`CLAUDE.md`（橋接），跨電腦靠雲端硬碟同步 |
 | **L2 +GitHub** | [GitHub CLI](https://cli.github.com/)（`gh auth login` 登入） | 版本控制＋雲端備份，貼網址就能分享專案 |
 | **L3 +Obsidian** | Obsidian＋Obsidian MCP | 專案詳細筆記（第二大腦） |
 
 三層資訊的讀取頻率不同——這是整套設計的核心：
 
-- `agents.md`＋`handoff.md`：**每個 session 都讀**（放交接必需的精簡資訊）
+- `AGENTS.md`＋`handoff.md`：**每個 session 都讀**（放交接必需的精簡資訊）
 - GitHub：**指定才讀**（備份與歷史）
 - Obsidian：**有需要才讀**（完整脈絡與細節）
 
@@ -32,13 +32,13 @@
 | 檔案 | 時效 | 寫入方式 | 放什麼 |
 |------|------|---------|--------|
 | `handoff.md` | **只對下一個 session 有效**，過期即丟 | 每次收工整份重寫 | 做到哪、下一步、**這次**的暫時 workaround |
-| `agents.md` | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
+| `AGENTS.md` | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
 | Obsidian／`git log` | **歷史**：發生過什麼、為什麼 | 只增不刪 | 決策紀錄、踩坑完整版、逐次進度 |
 
 兩個實務後果：
 
-1. **`agents.md` 不放「最近進度」這種逐次流水帳**，也不放決策理由。它每個 session 都要被重讀，放進去就是無限膨脹。歷史有 Obsidian 就寫 Obsidian，沒有就靠 `git log`（所以 commit 訊息要寫「做什麼**＋為什麼**」）。
-2. **`handoff.md` 該蒸發，不該結晶**。驗收標準：整份刪掉不該損失任何長期資訊。收工時 `shutdown` 會逐條檢視上一版的「⚠️ 注意事項」，會反覆遇到的坑收斂成一句規則升級進 `agents.md`、並從交接檔刪掉。
+1. **`AGENTS.md` 不放「最近進度」這種逐次流水帳**，也不放決策理由。它每個 session 都要被重讀，放進去就是無限膨脹。歷史有 Obsidian 就寫 Obsidian，沒有就靠 `git log`（所以 commit 訊息要寫「做什麼**＋為什麼**」）。
+2. **`handoff.md` 該蒸發，不該結晶**。驗收標準：整份刪掉不該損失任何長期資訊。收工時 `shutdown` 會逐條檢視上一版的「⚠️ 注意事項」，會反覆遇到的坑收斂成一句規則升級進 `AGENTS.md`、並從交接檔刪掉。
 
 ## 安裝
 
@@ -76,21 +76,21 @@ git clone https://github.com/changyiwu/cross-device-agent-skills.git
 
 晚上
   你：「收工」
-  Agent：✅ L1：agents.md 進度已更新、handoff.md 已改寫
+  Agent：✅ L1：AGENTS.md 進度已更新、handoff.md 已改寫
          ✅ L2：已 commit + push「新增報名表單 Firebase 寫入」
 ```
 
 ## 三個核心檔案
 
-- **`agents.md`**（專案藍圖）：用 AGENTS.md 開放標準命名——Codex、Gemini CLI、OpenCode 都會自動讀，換 Agent 不用改檔案
+- **`AGENTS.md`**（專案藍圖）：用 AGENTS.md 開放標準命名——Codex、Gemini CLI、OpenCode 都會自動讀，換 Agent 不用改檔案
 - **`handoff.md`**（交接檔）：記錄「目前做到哪／下一步／注意事項／**最後更新者＋電腦名＋有沒有 push**」。不管是**換電腦**還是**換 Agent** 接手，都先讀這個檔。**不進 git**（`project-init` 會直接寫進 `.gitignore`）——它天生含真實電腦名與 `C:\Users\...` 絕對路徑，跨電腦靠雲端硬碟同步就夠了，不需要也不該進公開 repo
-- **`CLAUDE.md`**（橋接檔）：**Claude Code 只讀 `CLAUDE.md`，不讀 `agents.md`**（[官方文件](https://code.claude.com/docs/en/memory)明載），所以要用一行 `@agents.md` 把藍圖 import 進來。藍圖仍只有一份，四家 Agent 都吃得到
+- **`CLAUDE.md`**（橋接檔）：Claude Code 自 v2.1.277 起能原生讀 `AGENTS.md`，但**有 `CLAUDE.md` 時就只讀 `CLAUDE.md`**，且原生讀取在 Bedrock／telemetry 停用／停用 hooks／升級後第一個 session 會失效（[官方文件](https://code.claude.com/docs/en/memory)明載），所以一律用一行 `@AGENTS.md` 把藍圖 import 進來。藍圖仍只有一份，四家 Agent 都吃得到
 
 ```markdown
-@agents.md
+@AGENTS.md
 
 ## Claude Code 專屬
-（只放 Claude 專屬規範；專案內容一律寫在 agents.md）
+（只放 Claude 專屬規範；專案內容一律寫在 AGENTS.md）
 ```
 
 > 官方另一個做法是 `ln -s AGENTS.md CLAUDE.md`，但 Windows 建 symlink 要系統管理員或開發者模式，所以一律用 `@` import。

@@ -1,6 +1,6 @@
 ---
 name: startup
-description: 開工接續助手（三層級自動偵測）。當使用者說「開工」、「開始工作」、「我來了」、「上次做到哪」、「我們繼續」、「接下來呢」、「接續工作」、「來吧」等任何要接續上次工作的請求時，請一定要使用此技能。本技能會讀取 agents.md 專案藍圖與 handoff.md 交接檔、檢查 git 狀態（含遠端 fetch）、辨識上次是否在另一台電腦收工、建議下一步該做什麼。
+description: 開工接續助手（三層級自動偵測）。當使用者說「開工」、「開始工作」、「我來了」、「上次做到哪」、「我們繼續」、「接下來呢」、「接續工作」、「來吧」等任何要接續上次工作的請求時，請一定要使用此技能。本技能會讀取 AGENTS.md 專案藍圖與 handoff.md 交接檔、檢查 git 狀態（含遠端 fetch）、辨識上次是否在另一台電腦收工、建議下一步該做什麼。
 ---
 
 # 開工接續助手（三層級）
@@ -17,10 +17,10 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
 
 ## 層級偵測（開工看「這個專案」建到哪層）
 
-- **L1**：專案有 `agents.md`／`handoff.md` → 讀
-  - 你是 **Claude Code** 且專案有 `agents.md`、卻沒有 `CLAUDE.md`（或 `CLAUDE.md` 裡沒有 `@agents.md`）→ 藍圖這個 session **沒被自動載入**。用 Read 工具把 `agents.md` 讀進來照常開工，並在回報最後提醒：「這個專案缺 `CLAUDE.md` 橋接，要不要補一行 `@agents.md`？」
+- **L1**：專案有 `AGENTS.md`／`handoff.md` → 讀
+  - 你是 **Claude Code** 且專案有 `AGENTS.md`、卻沒有 `CLAUDE.md`（或 `CLAUDE.md` 裡沒有 `@AGENTS.md`）→ 藍圖這個 session **沒被自動載入**。用 Read 工具把 `AGENTS.md` 讀進來照常開工，並在回報最後提醒：「這個專案缺 `CLAUDE.md` 橋接，要不要補一行 `@AGENTS.md`？」
 - **L2**：專案有 `.git` → 做 git 檢查
-- **L3**：`agents.md` 同步層級表登記了 Obsidian 路徑，且 Obsidian MCP 可用 → 列出筆記路徑（不主動讀）
+- **L3**：`AGENTS.md` 同步層級表登記了 Obsidian 路徑，且 Obsidian MCP 可用 → 列出筆記路徑（不主動讀）
 
 > 注意：偵測依據是「專案有什麼」，不是「電腦有什麼」。低層級電腦打開高層級專案時做得到的照做、做不到的註明（優雅降級）。
 
@@ -28,11 +28,11 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
 
 ### L1：讀藍圖與交接檔（永遠執行）
 
-1. **讀 `agents.md`**：專案目標、路線圖進度、工作約定（摘要，不全文倒出）
+1. **讀 `AGENTS.md`**：專案目標、路線圖進度、工作約定（摘要，不全文倒出）
 2. **讀 `handoff.md`**：上次做到哪、目前狀態、下一步、注意事項
 3. **檢查「最後更新」欄**：
    - 若**更新者的電腦名 ≠ 這台電腦**（PowerShell 比對 `[Environment]::MachineName`；⚠️ 不可用 `$env:COMPUTERNAME`，它在 macOS 是空字串且不報錯，比對會永遠成立）→ 特別標示「⚠️ 上次在另一台電腦（名稱）收工」，若兩台是**不同作業系統**再加一句提醒（handoff 裡的本機路徑與指令可能不適用這台），並確認 GDrive 同步已完成（看 handoff.md 檔案時間戳是否與交接檔內時間吻合；若本地檔案明顯過舊，提醒等 GDrive 同步完再開工）
-   - 若 handoff.md 的更新時間比 agents.md 舊很多 → 提醒「上次可能沒有正式收工」
+   - 若 handoff.md 的更新時間比 AGENTS.md 舊很多 → 提醒「上次可能沒有正式收工」
 
 ### L2：git 檢查（專案有 `.git` 才做）
 
@@ -47,7 +47,7 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
    - `BEHIND` > 0 → 提醒「遠端有 N 個新 commit，要 `git pull` 嗎？」**不主動 pull**
 6. **交叉比對防呆**：若 handoff.md 寫「Git push：✅」但遠端沒有對應的新 commit → 警告「上次收工可能沒推成功，建議先確認再動工」
 7. **近期脈絡**：`git log --oneline -5`
-   - `agents.md` 刻意不留逐次進度、`handoff.md` 只寫最後一次，所以**再往前的歷史只剩 commit 訊息**（沒有 L3 的專案更是唯一來源）。在報告中列最近 2-3 個標題即可，需要細節再 `git show`
+   - `AGENTS.md` 刻意不留逐次進度、`handoff.md` 只寫最後一次，所以**再往前的歷史只剩 commit 訊息**（沒有 L3 的專案更是唯一來源）。在報告中列最近 2-3 個標題即可，需要細節再 `git show`
    - 若最新 commit 明顯**晚於** handoff.md 的「最後更新」時間 → 提醒「上次可能改完就散了、沒正式收工，這幾個 commit 沒進交接檔」
 
 ### L3：Obsidian 筆記（有登記才列，不主動讀）
@@ -78,7 +78,7 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
 ## 不該做的事
 
 - ❌ 主動 `git pull`（會撞本地未 commit 變動）
-- ❌ 修改 `agents.md`／`handoff.md`／Obsidian 筆記（那是收工的事）
+- ❌ 修改 `AGENTS.md`／`handoff.md`／Obsidian 筆記（那是收工的事）
 - ❌ 沒有交接檔時硬建一個（先問使用者）
 - ❌ 開工就把 Obsidian 筆記全文讀進來（違反「有需要才讀」的分層設計）
 - ❌ 把藍圖與交接檔內容**全文倒出來**（要摘要、保持精簡）
@@ -88,7 +88,7 @@ description: 開工接續助手（三層級自動偵測）。當使用者說「�
 | 面向 | 收工 | 開工 |
 |------|------|------|
 | 主要動作 | 摘要今天做什麼 | 摘要上次做什麼 |
-| agents.md / handoff.md | **寫入** | **讀出** |
+| AGENTS.md / handoff.md | **寫入** | **讀出** |
 | Git 動作 | add + commit + push | status + fetch（不 pull） |
 | Obsidian | 寫詳細紀錄 | 只列路徑、需要才讀 |
 | 對外副作用 | 推 GitHub、改檔案 | **無**（只讀、只報告） |

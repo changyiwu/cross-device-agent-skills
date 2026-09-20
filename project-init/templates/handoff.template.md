@@ -13,7 +13,7 @@
 1.
 
 ## ⚠️ 注意事項
-<!-- 只放下一個 session 仍需處理的未解風險、暫時 workaround 或當前禁止變動項目；長期規則放 agents.md，已解決的踩坑與原因放 Obsidian -->
+<!-- 只放下一個 session 仍需處理的未解風險、暫時 workaround 或當前禁止變動項目；長期規則放 AGENTS.md，已解決的踩坑與原因放 Obsidian -->
 
 ## 🕐 最後更新
 - 時間：<YYYY-MM-DD HH:mm>

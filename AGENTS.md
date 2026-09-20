@@ -1,7 +1,7 @@
 # 跨電腦專案管理三技能（cross-device-agent-skills）（專案藍圖）
 
 > 本檔為跨 Agent 通用的專案藍圖（AGENTS.md 開放標準）。任何 Agent 的每個 session 都應先讀本檔＋`handoff.md`。
-> Claude Code 不讀 `agents.md`，改由 `CLAUDE.md` 的 `@agents.md` import 本檔；Claude 專屬規範寫在 `CLAUDE.md`。
+> Claude Code 自 v2.1.277 起可原生讀 `AGENTS.md`，但**有 `CLAUDE.md` 時就只讀 `CLAUDE.md`**（預設 `claude-md-or-agents-md`），所以本專案一律保留 `CLAUDE.md` 的 `@AGENTS.md` import；Claude 專屬規範寫在 `CLAUDE.md`。
 
 ## 專案簡介
 
@@ -14,10 +14,10 @@
 ## 目標與路線圖
 
 - [x] 階段一：三技能成形（project-init / startup / shutdown）＋ README 說明
-- [x] 階段二：本專案自身完成初始化（agents.md ＋ handoff.md ＋ git ＋ Obsidian）
+- [x] 階段二：本專案自身完成初始化（AGENTS.md ＋ handoff.md ＋ git ＋ Obsidian）
 - [ ] 階段三：跨電腦實測（在另一台電腦「開工／收工」驗證流程；**現在也包含 macOS 實測**）
 - [ ] 階段四：依實測回饋調整技能內容
-- [x] 階段五：既有 30 個專案依「時效性」規則整理完畢（`agents.md` 移除 17 個 `## 最近進度`、30 個補上職責護欄；`handoff.md` 的 ⚠️ 從約 180 條分流到 33 條；缺漏的歷史先回填 Obsidian 才刪）
+- [x] 階段五：既有 30 個專案依「時效性」規則整理完畢（`AGENTS.md` 移除 17 個 `## 最近進度`、30 個補上職責護欄；`handoff.md` 的 ⚠️ 從約 180 條分流到 33 條；缺漏的歷史先回填 Obsidian 才刪）
 - [x] 階段七：全 `agents/` 移除原作者頻道品牌署名（8 個 repo 已改）——`LICENSE`／`LICENSE-ASSETS.md` 與各 repo 一句原作者歸屬保留，`sensebar-agent-knowledge-vault-builder` 整個 repo 例外不動
 - [x] 階段六：跨平台改造（Windows ↔ macOS）——`platform.md` 定案（pwsh 7 唯一、路徑原則、能力分級）、`sync-skills` 與三技能改雙平台、`tools/check-platform.py` 建立可執行檢查、`file-toolkit`／`voxcpm2`／`agent-speak`／`share-report`／`clasp-gas-skill` 完成移植。**未在 macOS 實測過，那是階段三**
 
@@ -26,8 +26,8 @@
 ```
 cross-device-agent-skills/
 ├─ README.md                 # 技能包說明、安裝方式（同步改指向 sync-skills 技能）
-├─ agents.md                 # 本檔：專案藍圖
-├─ CLAUDE.md                 # 橋接檔（@agents.md，讓 Claude Code 也載得到藍圖）
+├─ AGENTS.md                 # 本檔：專案藍圖
+├─ CLAUDE.md                 # 橋接檔（@AGENTS.md，讓 Claude Code 也載得到藍圖）
 ├─ platform.md               # 跨平台約定（Windows ↔ macOS）：路徑原則＋四個不報錯的坑
 ├─ handoff.md                # 交接檔（每次收工必更新；已 gitignore，只走雲端硬碟）
 ├─ project-init/
@@ -47,7 +47,7 @@ cross-device-agent-skills/
 
 | 層級 | 平台 | 位置 | 讀取時機 |
 |------|------|------|---------|
-| L1 | 本地（GDrive） | `agents.md`＋`handoff.md`（不進 git，只走雲端硬碟）＋`CLAUDE.md`（橋接） | 每個 session |
+| L1 | 本地（GDrive） | `AGENTS.md`＋`handoff.md`（不進 git，只走雲端硬碟）＋`CLAUDE.md`（橋接） | 每個 session |
 | L2 | GitHub | https://github.com/changyiwu/cross-device-agent-skills （公開） | 指定時 |
 | L3 | Obsidian | `cross-device-agent-skills/專案工作流程.md` | 有需要時 |
 
@@ -56,7 +56,7 @@ cross-device-agent-skills/
 | 檔案 | 時效 | 寫入方式 | 放什麼 |
 |------|------|---------|--------|
 | `handoff.md` | **只對下一個 session 有效**，過期即丟 | 每次收工整份重寫 | 做到哪、下一步、**這次**的暫時 workaround |
-| `agents.md`（本檔） | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
+| `AGENTS.md`（本檔） | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
 | Obsidian／`git log` | **歷史**：發生過什麼、為什麼 | 只增不刪 | 決策紀錄、踩坑完整版、逐次進度 |
 
 驗收標準：**`handoff.md` 整份刪掉，不應損失任何長期資訊**——會的話代表該升級進本檔卻沒升級。
@@ -85,3 +85,6 @@ cross-device-agent-skills/
 - **GDrive 上的 repo 一律以 git 為準，不以檔案內容或時間戳為準**。`git status` 出現 `MM` 但 `git diff HEAD` 為空時只是 LF/CRLF 差異，`git add --renormalize .` 可消除
 - **原作者的頻道品牌不要加回來**。2026-08-22 依使用者決定，全 `agents/` 移除「三師爸 Sense Bar」「@sensebar」等頻道推廣署名、YouTube 連結與影片集數綁定（本 repo 的 README 也不再自稱「EP06 懶人包」）。保留的只有兩種：各 repo `LICENSE`／`LICENSE-ASSETS.md` 的原始著作權行（MIT 保留義務，**永遠不可刪**），以及出處說明裡「原作者三師爸（`mathruffian-dot`）、本專案為改作版本」一句。`mathruffian-dot` 的上游 URL 一律保留——那是安裝指令與出處追溯要用的。例外：`sensebar-agent-knowledge-vault-builder` 整個 repo 不動，它的存在目的就是抓該頻道字幕。
 - PowerShell 裡 `'@{u}'` **一定要用單引號包起來**，裸的 `@{` 會被當成 hashtable 語法、直接噴解析錯誤
+- **跨 Agent 藍圖的檔名一律是大寫 `AGENTS.md`**（開放標準的正式拼法，也是 Claude Code 原生辨識的拼法）。2026-09-20 全 `agents/` 36 個 repo 由舊的小寫 `agents.md` 統一改名。Windows 與 macOS 的檔案系統大小寫不敏感，**在這兩台永遠測不出檔名拼錯**，所以命名靠約定顧、不要靠實測；改名一律 `git mv -f`（`core.ignorecase=true` 時不加 `-f` git 看不到改名）
+- **`CLAUDE.md` 橋接檔不要刪**。Claude Code 已能原生讀 `AGENTS.md`，但那是**二選一**不是兩份都讀：有 `CLAUDE.md` 就完全不碰 `AGENTS.md`。留著 import 不會讀兩次，且有四種場合原生讀不到（Amazon Bedrock、telemetry 停用、`disableAllHooks`／`allowManagedHooksOnly`、安裝或升級後的第一個 session）——跨電腦跨 Agent 正是本專案的承諾，不能賭。各專案的 `CLAUDE.md` 除了 import 還放著 Claude 專屬規範，更不能刪
+- 驗證橋接生效的方式**依載入途徑而不同**：走 `@AGENTS.md` import 就看 `/context` 的 **Memory files** 有沒有列到 `CLAUDE.md`；若哪天改走原生讀取，`AGENTS.md` **不會**出現在 `/memory` 與 `/context` 的清單裡，要改看 session 開頭的 `AGENTS.md loaded:` 那行——用錯方式會得到假陰性
