@@ -90,6 +90,7 @@ cross-device-agent-skills/
 - PowerShell 裡 `'@{u}'` **一定要用單引號包起來**，裸的 `@{` 會被當成 hashtable 語法、直接噴解析錯誤
 - **跨 Agent 藍圖的檔名一律是大寫 `AGENTS.md`**（開放標準的正式拼法，也是 Claude Code 原生辨識的拼法）。2026-09-20 全 `agents/` 36 個 repo 由舊的小寫 `agents.md` 統一改名。Windows 與 macOS 的檔案系統大小寫不敏感，**在這兩台永遠測不出檔名拼錯**，所以命名靠約定顧、不要靠實測；改名一律 `git mv -f`（`core.ignorecase=true` 時不加 `-f` git 看不到改名）
 - **雲端硬碟同步的 repo 禁止純大小寫改名**。Google 雲端硬碟套用不了這種改名（兩端檔案系統都大小寫不敏感），另一台收到的會是「舊檔被刪＋新檔落成 `AGENTS (1).md`」——藍圖在磁碟上消失，而 `CLAUDE.md` 的 `@AGENTS.md` import **靜默失敗**（不報錯，只是整份藍圖沒載到）。2026-09-20 階段八改名後，36 個 repo 在第二台全中，沒中的 3 個正是原本就大寫、沒改名的。必須改大小寫時走**兩段式**：`X.md → X-tmp.md`，等雲端同步完成再 `X-tmp.md → NEWNAME.md`。已中招的修法是 `git checkout -- AGENTS.md` 還原後刪掉 `(1)` 副本，**刪前一定先 `cmp` 確認副本與 `git show HEAD:AGENTS.md` 逐位元組相同**；不同就停下來問，不要自己選一份
+- 掃雲端硬碟同步殘留時，**`share-report/ep01/DEMO/` 底下的 `(1)`／`(2)`／`(3)` 檔是示範素材、不是殘留**——已被 `.gitignore` 排除、含真實學籍資料，不要順手清
 - **`CLAUDE.md` 橋接檔不要刪**。Claude Code 已能原生讀 `AGENTS.md`，但那是**二選一**不是兩份都讀：有 `CLAUDE.md` 就完全不碰 `AGENTS.md`。留著 import 不會讀兩次，且有四種場合原生讀不到（Amazon Bedrock、telemetry 停用、`disableAllHooks`／`allowManagedHooksOnly`、安裝或升級後的第一個 session）——跨電腦跨 Agent 正是本專案的承諾，不能賭
 - **`CLAUDE.md` 只放一行 `@AGENTS.md`，不要再往裡面加內容**。Claude 專屬規範一律寫在 `AGENTS.md` 末尾的〈Claude Code 專屬〉一節（沒有就不設這節）——規範只有一處，那四種場合也靠 import 照樣載到。2026-10-04 全 `agents/` 已改成這個形式。專案若有「四家對等」之類的規則，要寫明〈Claude Code 專屬〉一節是例外
 - 驗證橋接生效的方式**依載入途徑而不同**：走 `@AGENTS.md` import 就看 `/context` 的 **Memory files** 有沒有列到 `CLAUDE.md`；若哪天改走原生讀取，`AGENTS.md` **不會**出現在 `/memory` 與 `/context` 的清單裡，要改看 session 開頭的 `AGENTS.md loaded:` 那行——用錯方式會得到假陰性
