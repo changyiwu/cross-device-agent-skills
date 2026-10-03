@@ -88,10 +88,9 @@ git clone https://github.com/changyiwu/cross-device-agent-skills.git
 
 ```markdown
 @AGENTS.md
-
-## Claude Code 專屬
-（只放 Claude 專屬規範；專案內容一律寫在 AGENTS.md）
 ```
+
+`CLAUDE.md` 就只有這一行。只有 Claude Code 才需要的規範，寫在 `AGENTS.md` 末尾的〈Claude Code 專屬〉一節（沒有就不設），規範永遠只有一處。
 
 > 官方另一個做法是 `ln -s AGENTS.md CLAUDE.md`，但 Windows 建 symlink 要系統管理員或開發者模式，所以一律用 `@` import。
 > 驗證方式：在 Claude Code 裡跑 `/context`，看 **Memory files** 有沒有列到 `CLAUDE.md`。

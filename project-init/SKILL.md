@@ -43,17 +43,13 @@ description: 專案初始化技能（三層級自動偵測）。當使用者說�
 2. **詢問使用者**：專案名稱、一句話目標、關鍵時程（沒有就留白，不要硬編）
 3. **建立 `AGENTS.md`**：用 `templates/agents.template.md` 為底，填入實際內容；「資料夾結構」區塊由掃描結果自動生成。範本裡的〈三個檔案的職責〉整節**要留著**——它是防止藍圖日後被寫成流水帳的護欄；〈專案專屬規則〉問使用者有沒有常設約束（技術限制、部署方式、安全邊界），沒有就整節刪掉
 4. **建立 `handoff.md`**：用 `templates/handoff.template.md` 為底，「目前做到哪」填「專案初始化完成」，更新者填 Agent 名＋電腦名（PowerShell 用 `[Environment]::MachineName` 取得；⚠️ 不可用 `$env:COMPUTERNAME`，macOS 上是空字串且不報錯）
-5. **建立 `CLAUDE.md` 橋接檔**：用 `templates/claude.template.md` 為底。內容只有 import 加上 Claude 專屬區塊——**專案內容一律寫進 `AGENTS.md`，不要複製一份到這裡**（兩份會分叉）：
+5. **建立 `CLAUDE.md` 橋接檔**：用 `templates/claude.template.md` 為底，**整份就只有一行**——**任何內容都寫進 `AGENTS.md`，不要寫在這裡**（兩份會分叉）。只有 Claude Code 才需要的規範，寫在 `AGENTS.md` 末尾的〈Claude Code 專屬〉一節（範本已留好，沒有就整節刪掉）：
 
    ```markdown
    @AGENTS.md
-
-   ## Claude Code 專屬
-
-   （只放 Claude Code 才需要的規範；沒有就留白。專案內容請寫在 AGENTS.md）
    ```
 
-   已有 `CLAUDE.md` 而使用者不要覆蓋時：只在檔案**最上方補一行 `@AGENTS.md`**，其餘內容不動，並告知使用者哪些段落跟 `AGENTS.md` 重複、可自行刪。
+   已有 `CLAUDE.md` 而使用者不要覆蓋時：只在檔案**最上方補一行 `@AGENTS.md`**，其餘內容不動，並告知使用者：跟 `AGENTS.md` 重複的段落可刪，Claude 專屬的段落建議搬進 `AGENTS.md`〈Claude Code 專屬〉、讓 `CLAUDE.md` 只剩一行。
 6. 若路徑含「雲端硬碟」、「My Drive」或「CloudStorage」（macOS 的掛載點是 `~/Library/CloudStorage/GoogleDrive-<帳號>/`）→ 提醒使用者確認 Google 雲端硬碟桌面版的同步圖示已打勾（檔案要真的躺在雲端，換電腦才拿得到）
 
 ### L2：GitHub（gh 已登入才做，否則跳過並註明）
