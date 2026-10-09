@@ -140,3 +140,13 @@ $skills = Join-Path $HOME '.claude/skills'      # 正斜線兩平台都吃
 3. ⚠️ **不要為了跨平台把 Office COM 換成 LibreOffice。** `share-report/AGENTS.md` 已經驗證過：`soffice` 在 Windows 會因 `socket.AF_UNIX` 直接 `AttributeError`，而且它替換字型導致字寬不同，「文字有沒有溢出」會**判斷錯誤**——那是比不支援更糟的失敗方式。**這個理由在 mac 上一樣成立**，所以 mac 的正解是 AppleScript 驅動 Office，不是改用 LibreOffice。
 
 4. **「沒有 mac 對應」要分清楚是「介面」還是「能力」。** COM 確實只有 Windows 有，但 Office for Mac 是 AppleScript 可驅動的——把「要另外寫一條路」講成「做不到」，會讓本來能做的事被永久劃掉。判斷方式：那個功能靠的是**應用程式**（Word／PowerPoint／Excel，mac 有）還是**Windows 專屬子系統**（WMI、登錄檔、Smart App Control，mac 沒有）。
+
+## Windows on ARM（第三種環境，尚未實機驗證）
+
+上面講的「Windows」預設是 x64。Windows on ARM（例如 RTX Spark／N1X、Snapdragon）路徑規則、pwsh、編碼全部照 Windows，**差別只在原生二進位與 GPU**：
+
+- **判斷架構看作業系統，不看 pwsh 自己**：`[Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq 'Arm64'`。x64 版 pwsh 在 ARM 上模擬執行時，`ProcessArchitecture` 會回報 `X64`
+- **x64 程式靠 Prism 模擬照樣能跑**（Tesseract、只出 x64 的 Electron 打包、puppeteer 的 Chrome），只是比較慢——這類不算壞，不用改
+- **會真的壞的是「看到 NVIDIA 就走 CUDA」的寫死**：PyTorch 的 `cu128` 這類索引沒有 `win_arm64` wheel，指定 `--index-url` 後 uv 不會去別處找，直接安裝失敗。ARM 上一律先走 CPU、明說原因，等官方 wheel 出來再改
+- **RTX Spark 是統一記憶體**：`nvidia-smi` 的 `memory.total` 可能回 `[N/A]`、登錄檔的 VRAM 很小，用「VRAM ≥ N GB」篩獨顯的邏輯必然落空。照 Apple Silicon 的方式以系統記憶體比例估
+- **原生指令失敗不受 `$ErrorActionPreference = 'Stop'` 管**，安裝腳本的 `uv`／`pip` 要自己檢查 `$LASTEXITCODE`——ARM 上原生套件裝不起來的機率高，沒檢查就會一路印「安裝完成」
